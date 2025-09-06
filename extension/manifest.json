@@ -15,7 +15,8 @@
     "https://images.unsplash.com/*",
     "https://picsum.photos/*",
     "https://api.mymemory.translated.net/*",
-    "https://geocoding-api.open-meteo.com/*"
+    "https://geocoding-api.open-meteo.com/*",
+    "https://www.codicepunto.it/photos/DB/*"
   ],
   "background": { "service_worker": "sw.js" }
 }

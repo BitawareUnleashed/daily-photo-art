@@ -231,7 +231,7 @@ body {
   background-repeat: no-repeat;
   z-index: -1;
   background-color: #00a6ff33; /* Blue for testing */
-  background-image: url("https://picsum.photos/1536/864?random=1830"); /* Direct CSS test */
+  /* background-image: none; */
 }
 
 #bg::after {

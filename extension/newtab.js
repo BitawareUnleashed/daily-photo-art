@@ -459,64 +459,93 @@ async function loadWeather2() {
   }
 }
 
+
+// Scarica una foto e il relativo JSON da codicepunto.it/photos/DB
+async function downloadCodicepuntoPhoto() {
+  // Scegli un ID random (puoi cambiare range se necessario)
+  const photoNum = Math.floor(Math.random() * 21) + 1;
+  const photoId = `DBE_${photoNum.toString().padStart(3, '0')}`;
+  //const baseUrl = `https://www.codicepunto.it/photos/DB/${photoId}`;
+  const baseUrl = `https://raw.githubusercontent.com/bitawareunleashed/photo-storage/main/${photoId}`;
+  const jpgUrl = `${baseUrl}.JPG`;
+  const jsonUrl = `${baseUrl}.json`;
+  try {
+    // Scarica la foto
+    const imgResp = await fetch(jpgUrl);
+    if (!imgResp.ok) throw new Error('Immagine non trovata');
+    const imgBlob = await imgResp.blob();
+    const imgUrl = URL.createObjectURL(imgBlob);
+
+    // Scarica il JSON
+    const jsonResp = await fetch(jsonUrl);
+    if (!jsonResp.ok) throw new Error('JSON non trovato');
+    const photoData = await jsonResp.json();
+
+    return { imgUrl, photoData, photoId };
+  } catch (e) {
+    console.warn('Errore download foto/JSON codicepunto:', e);
+    return false;
+  }
+}
+
+// Modifica setBackground per usare anche codicepunto.it
 async function setBackground() {
   try {
     const bgElement = document.getElementById("bg");
     const photoInfoElement = document.getElementById("photo-info");
-    
-    console.log('Background element found:', bgElement);
-    
     if (!bgElement) {
       console.error('Background element not found!');
       return;
     }
-    
-    // Generate random ID for different photos
-    const photoId = Math.floor(Math.random() * 1000) + 1;
-    const url = `https://picsum.photos/1536/864?random=${photoId}`;
-    
-    console.log('Trying to load background from:', url);
-    
-    // Apply background using setAttribute instead of style
-    bgElement.style.setProperty('background-image', `url("${url}")`, 'important');
+
+    // 50% di probabilità: codicepunto oppure Picsum
+    let useCodicepunto = Math.random() < 1;
+    let imgUrl, photoData, photoId, source;
+    //if (useCodicepunto) {
+      const result = await downloadCodicepuntoPhoto();
+      if (result) {
+        imgUrl = result.imgUrl;
+        photoData = result.photoData;
+        photoId = result.photoId;
+        source = 'codicepunto';
+      }
+    //}
+    // fallback a Picsum se fallisce codicepunto
+    //if (!imgUrl && false) {
+    else{
+      photoId = Math.floor(Math.random() * 1000) + 1;
+      imgUrl = `https://picsum.photos/1536/864?random=${photoId}`;
+      source = 'picsum';
+      try {
+        const infoResponse = await fetch(`https://picsum.photos/id/${photoId}/info`);
+        photoData = await infoResponse.json();
+      } catch {}
+    }
+
+    // Applica background
+    bgElement.style.setProperty('background-image', `url("${imgUrl}")`, 'important');
     bgElement.style.setProperty('background-size', 'cover', 'important');
     bgElement.style.setProperty('background-position', 'center', 'important');
     bgElement.style.setProperty('background-repeat', 'no-repeat', 'important');
-    
-    // Get photo info from Picsum API
-    try {
-      const infoResponse = await fetch(`https://picsum.photos/id/${photoId}/info`);
-      const photoData = await infoResponse.json();
-      
-      if (photoData && photoInfoElement) {
-        const photoTextElement = document.getElementById("photo-text");
-        
-        if (photoTextElement) {
-          // Store photo data for language updates
-          localStorage.setItem('currentPhotoData', JSON.stringify(photoData));
-          
-          // Get current language from the dropdown or localStorage
-          const languageSelect = document.getElementById('quote-language');
-          const currentLang = languageSelect ? languageSelect.value : (localStorage.getItem('quoteLang') || 'it');
-          const t = translations[currentLang];
-          
-          // Combine author and source info in one line
+
+    // Mostra info foto
+    if (photoData && photoInfoElement) {
+      const photoTextElement = document.getElementById("photo-text");
+      if (photoTextElement) {
+        localStorage.setItem('currentPhotoData', JSON.stringify(photoData));
+        const languageSelect = document.getElementById('quote-language');
+        const currentLang = languageSelect ? languageSelect.value : (localStorage.getItem('quoteLang') || 'it');
+        const t = translations[currentLang];
+        if (source === 'codicepunto') {
+          photoTextElement.textContent = `${t.photoBy} ${photoData.Name || photoData.ID || photoId} • Codicepunto.it`;
+        } else {
           photoTextElement.textContent = `${t.photoBy} ${photoData.author} • Picsum Photos ID: ${photoData.id}`;
-          photoInfoElement.style.display = 'block';
         }
+        photoInfoElement.style.display = 'block';
       }
-    } catch (infoError) {
-      console.warn('Could not load photo info:', infoError);
-      // Hide photo info if we can't load it
-      if (photoInfoElement) {
-        photoInfoElement.style.display = 'none';
-      }
+    } else if (photoInfoElement) {
+      photoInfoElement.style.display = 'none';
     }
-    
-    console.log('Background applied to element');
-    console.log('Element style:', bgElement.style.cssText);
-    console.log('Computed style:', window.getComputedStyle(bgElement).backgroundImage);
-    
   } catch (error) {
     console.error('Error loading background:', error);
   }
