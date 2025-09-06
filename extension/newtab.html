@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>New Tab</title>
+  <link rel="stylesheet" href="newtab.css" />
+</head>
+
+<body>
+  <div id="bg"></div>
+
+  <!-- Photo info -->
+  <div id="photo-info" style="display: none;">
+    <div id="photo-text"></div>
+  </div>
+
+  <!-- Bottone pulizia -->
+  <button id="clear-btn" title="Pulisci tutto">🧹</button>
+
+  <!-- Bottone add todo -->
+  <button id="main-add-todo-btn" title="To-do">+</button>
+
+  <!-- Bottone notifica todo -->
+  <button id="todo-notification-btn" title="Mostra todo">📝</button>
+
+  <!-- Bottone impostazioni -->
+  <button id="settings-btn" title="Impostazioni">⚙️</button>
+
+  <!-- Select linguaggio -->
+  <select id="quote-language" title="Lingua citazioni">
+    <option value="it">IT</option>
+    <option value="en">EN</option>
+    <option value="fr">FR</option>
+    <option value="de">DE</option>
+  </select>
+
+  <!-- Popover impostazioni -->
+  <div id="settings-popover" style="display: none;">
+    <div class="popover-overlay"></div>
+    <div class="popover-content">
+      <div class="popover-header">
+        <h2>Impostazioni</h2>
+        <button id="close-popover">✕</button>
+      </div>
+      <div class="popover-body">
+        <label>Il tuo nome</label>
+        <input id="name-input" placeholder="Es. Dario" />
+        
+        <p><button id="save-settings">Salva</button></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Popover cambio città 1 -->
+  <div id="city-popover-1" class="city-popover" style="display: none;">
+    <div class="popover-overlay"></div>
+    <div class="popover-content">
+      <div class="popover-header">
+        <h2>Cambia Prima Città</h2>
+        <button class="close-city-popover">✕</button>
+      </div>
+      <div class="popover-body">
+        <label>Nome della città</label>
+        <input id="city-input-1" placeholder="Es. Roma" />
+
+        <p>
+          <button id="save-city-1">Salva</button>
+          <button class="close-city-popover cancel-btn">Annulla</button>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Popover cambio città 2 -->
+  <div id="city-popover-2" class="city-popover" style="display: none;">
+    <div class="popover-overlay"></div>
+    <div class="popover-content">
+      <div class="popover-header">
+        <h2>Cambia Seconda Città</h2>
+        <button class="close-city-popover">✕</button>
+      </div>
+      <div class="popover-body">
+        <label>Nome della città</label>
+        <input id="city-input-2" placeholder="Es. Milano" />
+
+        <p>
+          <button id="save-city-2">Salva</button>
+          <button class="close-city-popover cancel-btn">Annulla</button>
+        </p>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="todo">
+    <div class="todo-header" id="todo-drag-header">
+      <button id="todo-close-btn" title="Chiudi">✕</button>
+    </div>
+    <div class="todo-content">
+      <form id="todo-form" style="display: none;">
+        <div class="todo-input-row">
+          <input id="todo-input" placeholder="Aggiungi attività" />
+          <button id="add-todo-btn" type="submit" title="Aggiungi alla lista">✔</button>
+          <button id="hide-todo-form" type="button" title="Nascondi To-do">−</button>
+        </div>
+
+        <div class="color-picker">
+          <input type="radio" id="color-white" name="todo-color" value="#ffffff" checked>
+          <label for="color-white" class="color-option" style="background-color: #ffffff;"></label>
+
+          <input type="radio" id="color-red" name="todo-color" value="#ff6b6b">
+          <label for="color-red" class="color-option" style="background-color: #ff6b6b;"></label>
+
+          <input type="radio" id="color-blue" name="todo-color" value="#74c0fc">
+          <label for="color-blue" class="color-option" style="background-color: #74c0fc;"></label>
+
+          <input type="radio" id="color-green" name="todo-color" value="#51cf66">
+          <label for="color-green" class="color-option" style="background-color: #51cf66;"></label>
+
+          <input type="radio" id="color-yellow" name="todo-color" value="#ffd43b">
+          <label for="color-yellow" class="color-option" style="background-color: #ffd43b;"></label>
+        </div>
+      </form>
+
+      <ul id="todo-list"></ul>
+    </div> <!-- Close todo-content -->
+  </div>
+
+  <!-- Welcome screen when no name is saved -->
+  <div id="welcome-screen" style="display: none;">
+    <div class="welcome-content">
+      <h1 id="welcome-title">Benvenuto!</h1>
+      <p id="welcome-subtitle">Come ti chiami?</p>
+      <div class="welcome-form">
+        <input id="welcome-name-input" placeholder="Inserisci il tuo nome" />
+        <button id="welcome-save-btn">Inizia</button>
+      </div>
+    </div>
+  </div>
+
+  <main class="container">
+    <section class="top">
+      <div id="greeting"></div>
+      <div id="clock"></div>
+      <input id="focus" placeholder="Qual è il tuo focus di oggi?" />
+      <div id="focus-display"></div>
+    </section>
+
+    <section class="center">
+      <div id="quote"></div>
+    </section>
+
+    <section class="bottom">
+
+    </section>
+  </main>
+
+  <!-- Weather status bar -->
+  <div class="weather-status-bar">
+    <div class="weather-location">
+      <button id="change-city-btn" title="Cambia città">📍</button>
+      <div id="weather"></div>
+    </div>
+    <div class="weather-location">
+      <button id="change-city-btn-2" title="Cambia seconda città">📍</button>
+      <div id="weather-2"></div>
+    </div>
+  </div>
+
+  <script src="newtab.js"></script>
+</body>
+
+</html>
