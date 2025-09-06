@@ -1,11 +1,11 @@
 {
-  "name": "Daily Photo",
+  "name": "Daily Photo Art",
   "description": "New Tab con sfondo giornaliero, orologio, citazione, to-do e meteo.",
   "version": "0.1.0",
   "manifest_version": 3,
   "chrome_url_overrides": { "newtab": "newtab.html" },
   "icons": { "128": "assets/default-bg.jpg" },
-  "action": { "default_title": "Momentum Clone" },
+  "action": { "default_title": "Daily Photo Art" },
   "permissions": ["storage", "alarms"],
   "host_permissions": [
     "https://api.open-meteo.com/*",

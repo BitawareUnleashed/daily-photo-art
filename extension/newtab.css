@@ -961,7 +961,7 @@ h3 {
 
 /* Hide photo info in clean view */
 .clean-view #photo-info {
-  opacity: 0.25;
+  opacity: 0.75;
   pointer-events: none;
   transition: opacity 0.5s ease-in-out;
 }
