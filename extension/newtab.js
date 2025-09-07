@@ -159,6 +159,42 @@ focusDisplay.addEventListener("click", () => {
 const form = document.getElementById("todo-form");
 const input = document.getElementById("todo-input");
 const list = document.getElementById("todo-list");
+
+// Helper function to translate category names
+function translateCategory(category) {
+  if (!category) return '';
+  
+  // Get current language
+  const languageSelect = document.getElementById('quote-language');
+  const currentLang = languageSelect ? languageSelect.value : (localStorage.getItem('quoteLang') || 'it');
+  const texts = translations[currentLang] || translations.it;
+  
+  // Map original categories to translation keys
+  const categoryMap = {
+    'Lavoro': 'categoryWork',
+    'Work': 'categoryWork', 
+    'Travail': 'categoryWork',
+    'Arbeit': 'categoryWork',
+    'Casa': 'categoryHome',
+    'Home': 'categoryHome',
+    'Maison': 'categoryHome', 
+    'Zuhause': 'categoryHome',
+    'Hobby': 'categoryHobby',
+    'Loisirs': 'categoryHobby',
+    'Burocrazia': 'categoryBureaucracy',
+    'Bureaucracy': 'categoryBureaucracy',
+    'Bureaucratie': 'categoryBureaucracy',
+    'Bürokratie': 'categoryBureaucracy',
+    'Pagamenti': 'categoryPayments',
+    'Payments': 'categoryPayments',
+    'Paiements': 'categoryPayments',
+    'Zahlungen': 'categoryPayments'
+  };
+  
+  const translationKey = categoryMap[category];
+  return translationKey ? texts[translationKey] : category;
+}
+
 // Alternative version with event listener instead of inline onclick
 async function renderTodos() {
   const items = (await load("todos")) || [];
@@ -166,15 +202,18 @@ async function renderTodos() {
     .map((item, i) => {
       const isCompleted = item.completed || false;
       const color = item.color || '#ffffff';
+      const category = item.category || '';
+      const translatedCategory = translateCategory(category);
       const textStyle = isCompleted 
         ? `style=\"text-decoration: line-through; opacity: 0.6; color: ${color};\"` 
         : `style=\"color: ${color};\"`;
       const checkboxChecked = isCompleted ? 'checked' : '';
+      const categoryBadge = translatedCategory ? `<span class=\"todo-category-badge\">${translatedCategory}</span>` : '';
       return `
         <li>
           <div style=\"display: flex; align-items: center; gap: 8px; flex: 1;\">
             <input type=\"checkbox\" ${checkboxChecked} data-index=\"${i}\" class=\"todo-checkbox\" style=\"margin: 0;\">
-            <span ${textStyle}>${item.text}</span>
+            <span ${textStyle}>${item.text}${categoryBadge}</span>
           </div>
           <button data-index=\"${i}\" class=\"todo-delete\">✕</button>
         </li>
@@ -190,15 +229,18 @@ async function renderTodos() {
       .map((item, i) => {
         const isCompleted = item.completed || false;
         const color = item.color || '#ffffff';
+        const category = item.category || '';
+        const translatedCategory = translateCategory(category);
         const textStyle = isCompleted 
           ? `style="text-decoration: line-through; opacity: 0.6; color: ${color};"` 
           : `style="color: ${color};"`;
         const checkboxChecked = isCompleted ? 'checked' : '';
+        const categoryBadge = translatedCategory ? `<span class="todo-category-badge">${translatedCategory}</span>` : '';
         return `
           <li style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, .15); font-size: 16px;">
             <div style="display: flex; align-items: center; gap: 8px; flex: 1;">
               <input type="checkbox" ${checkboxChecked} data-index="${i}" class="todo-preview-checkbox" style="width: 16px; height: 16px; accent-color: #fff; margin: 0;">
-              <span ${textStyle}>${item.text}</span>
+              <span ${textStyle}>${item.text}${categoryBadge}</span>
             </div>
           </li>
         `;
@@ -299,21 +341,24 @@ form.addEventListener("submit", async (e) => {
   const text = input.value.trim();
   if (!text) return;
   
-  // Get selected color
+  // Get selected color and category
   const selectedColor = document.querySelector('input[name="todo-color"]:checked').value;
+  const selectedCategory = document.querySelector('input[name="todo-category"]:checked').value;
   
   const items = (await load("todos")) || [];
   items.push({ 
     text, 
     createdAt: Date.now(), 
     completed: false,
-    color: selectedColor 
+    color: selectedColor,
+    category: selectedCategory
   });
   await save("todos", items);
   input.value = "";
   
-  // Reset color to white
+  // Reset color to white and category to default
   document.getElementById('color-white').checked = true;
+  document.getElementById('category-lavoro').checked = true;
   
   renderTodos();
   
@@ -639,7 +684,14 @@ const translations = {
     welcomeStartButton: "Inizia",
     
     // Photo info
-    photoBy: "Foto di"
+    photoBy: "Foto di",
+    
+    // Categories
+    categoryWork: "Lavoro",
+    categoryHome: "Casa", 
+    categoryHobby: "Hobby",
+    categoryBureaucracy: "Burocrazia",
+    categoryPayments: "Pagamenti"
   },
   en: {
     // Buttons and tooltips
@@ -693,7 +745,14 @@ const translations = {
     welcomeStartButton: "Start",
     
     // Photo info
-    photoBy: "Photo by"
+    photoBy: "Photo by",
+    
+    // Categories
+    categoryWork: "Work",
+    categoryHome: "Home",
+    categoryHobby: "Hobby", 
+    categoryBureaucracy: "Bureaucracy",
+    categoryPayments: "Payments"
   },
   fr: {
     // Buttons and tooltips
@@ -747,7 +806,14 @@ const translations = {
     welcomeStartButton: "Commencer",
     
     // Photo info
-    photoBy: "Photo par"
+    photoBy: "Photo par",
+    
+    // Categories
+    categoryWork: "Travail",
+    categoryHome: "Maison",
+    categoryHobby: "Loisirs",
+    categoryBureaucracy: "Bureaucratie", 
+    categoryPayments: "Paiements"
   },
   de: {
     // Buttons and tooltips
@@ -801,7 +867,14 @@ const translations = {
     welcomeStartButton: "Start",
     
     // Photo info
-    photoBy: "Foto von"
+    photoBy: "Foto von",
+    
+    // Categories
+    categoryWork: "Arbeit",
+    categoryHome: "Zuhause", 
+    categoryHobby: "Hobby",
+    categoryBureaucracy: "Bürokratie",
+    categoryPayments: "Zahlungen"
   }
 };
 
@@ -883,12 +956,39 @@ function translateInterface(lang) {
   // Update welcome screen texts
   updateElementText('#welcome-title', texts.welcomeTitle);
   updateElementText('#welcome-subtitle', texts.welcomeSubtitle);
+  
+  // Update category labels and values
+  const categoryLabels = document.querySelectorAll('[data-translate]');
+  categoryLabels.forEach(label => {
+    const key = label.getAttribute('data-translate');
+    if (texts[key]) {
+      // Keep the emoji and update the text
+      const emoji = label.textContent.split(' ')[0];
+      label.textContent = `${emoji} ${texts[key]}`;
+      
+      // Update the corresponding radio button value
+      const radioId = label.getAttribute('for');
+      const radio = document.getElementById(radioId);
+      if (radio) {
+        // Remember if this radio was checked before updating value
+        const wasChecked = radio.checked;
+        radio.value = texts[key];
+        // Keep it checked if it was checked before
+        if (wasChecked) {
+          radio.checked = true;
+        }
+      }
+    }
+  });
   updateElement('welcome-name-input', 'placeholder', texts.welcomeInputPlaceholder);
   updateElementText('#welcome-save-btn', texts.welcomeStartButton);
   
   // Store current language and texts for greeting updates
   window.currentLang = lang;
   window.currentTexts = texts;
+  
+  // Re-render todos to update category translations in the lists
+  renderTodos();
 }
 
 // Helper function to update clean button text
