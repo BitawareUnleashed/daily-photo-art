@@ -200,22 +200,32 @@ async function renderTodos() {
   const items = (await load("todos")) || [];
   list.innerHTML = items
     .map((item, i) => {
-      const isCompleted = item.completed || false;
+      const status = item.status || (item.completed ? 'completed' : 'todo'); // Backward compatibility
       const color = item.color || '#ffffff';
       const category = item.category || '';
       const translatedCategory = translateCategory(category);
-      const textStyle = isCompleted 
-        ? `style=\"text-decoration: line-through; opacity: 0.6; color: ${color};\"` 
-        : `style=\"color: ${color};\"`;
-      const checkboxChecked = isCompleted ? 'checked' : '';
+      
+      // Determine text styling based on status
+      let textStyle;
+      if (status === 'completed') {
+        textStyle = `style=\"text-decoration: line-through; opacity: 0.6; color: ${color};\"`;
+      } else if (status === 'priority') {
+        textStyle = `style=\"font-weight: bold; color: ${color};\"`;
+      } else {
+        textStyle = `style=\"color: ${color};\"`;
+      }
+      
       const categoryBadge = translatedCategory ? `<span class=\"todo-category-badge\">${translatedCategory}</span>` : '';
       return `
         <li>
           <div style=\"display: flex; align-items: center; gap: 8px; flex: 1;\">
-            <input type=\"checkbox\" ${checkboxChecked} data-index=\"${i}\" class=\"todo-checkbox\" style=\"margin: 0;\">
+            <div class=\"todo-checkbox-custom state-${status}\" data-index=\"${i}\"></div>
             <span ${textStyle}>${item.text}${categoryBadge}</span>
           </div>
-          <button data-index=\"${i}\" class=\"todo-delete\">✕</button>
+          <div style=\"display: flex; gap: 4px;\">
+            <button data-index=\"${i}\" class=\"todo-edit\" title=\"Modifica\">✏️</button>
+            <button data-index=\"${i}\" class=\"todo-delete\">✕</button>
+          </div>
         </li>
       `;
     })
@@ -227,20 +237,31 @@ async function renderTodos() {
     previewPanel.style.display = 'block';
     previewPanel.innerHTML = items
       .map((item, i) => {
-        const isCompleted = item.completed || false;
+        const status = item.status || (item.completed ? 'completed' : 'todo'); // Backward compatibility
         const color = item.color || '#ffffff';
         const category = item.category || '';
         const translatedCategory = translateCategory(category);
-        const textStyle = isCompleted 
-          ? `style="text-decoration: line-through; opacity: 0.6; color: ${color};"` 
-          : `style="color: ${color};"`;
-        const checkboxChecked = isCompleted ? 'checked' : '';
+        
+        // Determine text styling based on status
+        let textStyle;
+        if (status === 'completed') {
+          textStyle = `style="text-decoration: line-through; opacity: 0.6; color: ${color};"`;
+        } else if (status === 'priority') {
+          textStyle = `style="font-weight: bold; color: ${color};"`;
+        } else {
+          textStyle = `style="color: ${color};"`;
+        }
+        
         const categoryBadge = translatedCategory ? `<span class="todo-category-badge">${translatedCategory}</span>` : '';
         return `
           <li style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, .15); font-size: 16px;">
             <div style="display: flex; align-items: center; gap: 8px; flex: 1;">
-              <input type="checkbox" ${checkboxChecked} data-index="${i}" class="todo-preview-checkbox" style="width: 16px; height: 16px; accent-color: #fff; margin: 0;">
+              <div class="todo-checkbox-custom state-${status}" data-index="${i}"></div>
               <span ${textStyle}>${item.text}${categoryBadge}</span>
+            </div>
+            <div style="display: flex; gap: 4px;">
+              <button data-index="${i}" class="todo-preview-edit" style="background: transparent; border: 0; color: var(--muted); cursor: pointer; padding: 4px 8px; border-radius: 4px; transition: background 0.2s;" title="Modifica">✏️</button>
+              <button data-index="${i}" class="todo-preview-delete" style="background: transparent; border: 0; color: var(--muted); cursor: pointer; padding: 4px 8px; border-radius: 4px; transition: background 0.2s;">✕</button>
             </div>
           </li>
         `;
@@ -251,21 +272,39 @@ async function renderTodos() {
     previewPanel.innerHTML = '';
   }
 
-  // Add event listener after creating HTML - only to main list checkboxes
-  const mainListCheckboxes = list.querySelectorAll('.todo-checkbox');
+  // Add event listener after creating HTML - custom checkboxes for main list
+  const mainListCheckboxes = list.querySelectorAll('.todo-checkbox-custom');
   mainListCheckboxes.forEach(checkbox => {
-    checkbox.addEventListener('change', async (e) => {
+    checkbox.addEventListener('click', async (e) => {
       const index = parseInt(e.target.dataset.index);
-      await toggleTodo(index);
+      await cycleTodoStatus(index);
     });
   });
   
-  // Add event listeners for preview panel checkboxes
-  const previewCheckboxes = previewPanel.querySelectorAll('.todo-preview-checkbox');
+  // Add event listeners for preview panel custom checkboxes
+  const previewCheckboxes = previewPanel.querySelectorAll('.todo-checkbox-custom');
   previewCheckboxes.forEach(checkbox => {
-    checkbox.addEventListener('change', async (e) => {
+    checkbox.addEventListener('click', async (e) => {
       const index = parseInt(e.target.dataset.index);
-      await toggleTodo(index);
+      await cycleTodoStatus(index);
+    });
+  });
+  
+  // Add event listeners for preview panel delete buttons
+  const previewDeleteButtons = previewPanel.querySelectorAll('.todo-preview-delete');
+  previewDeleteButtons.forEach(button => {
+    button.addEventListener('click', async (e) => {
+      const index = parseInt(e.target.dataset.index);
+      await deleteTodo(index);
+    });
+  });
+  
+  // Add event listeners for preview panel edit buttons
+  const previewEditButtons = previewPanel.querySelectorAll('.todo-preview-edit');
+  previewEditButtons.forEach(button => {
+    button.addEventListener('click', async (e) => {
+      const index = parseInt(e.target.dataset.index);
+      editTodo(index);
     });
   });
   
@@ -276,7 +315,47 @@ async function renderTodos() {
       await deleteTodo(index);
     });
   });
+  
+  // Add event listeners for main list edit buttons
+  const editButtons = list.querySelectorAll('.todo-edit');
+  editButtons.forEach(button => {
+    button.addEventListener('click', async (e) => {
+      const index = parseInt(e.target.dataset.index);
+      editTodo(index);
+    });
+  });
   updateTodoNotificationVisibility();
+}
+
+// Function to cycle through the 3 states: priority -> todo -> completed
+async function cycleTodoStatus(index) {
+  const items = (await load("todos")) || [];
+  if (items[index]) {
+    const currentStatus = items[index].status || (items[index].completed ? 'completed' : 'todo');
+    
+    // Cycle through states: todo -> priority -> completed -> todo
+    switch (currentStatus) {
+      case 'todo':
+        items[index].status = 'priority';
+        items[index].completed = false;
+        break;
+      case 'priority':
+        items[index].status = 'completed';
+        items[index].completed = true;
+        break;
+      case 'completed':
+        items[index].status = 'todo';
+        items[index].completed = false;
+        break;
+      default:
+        items[index].status = 'todo';
+        items[index].completed = false;
+    }
+    
+    await save("todos", items);
+    renderTodos();
+    updateTodoNotificationVisibility();
+  }
 }
 
 // Function to update todo notification button visibility
@@ -332,6 +411,47 @@ async function deleteTodo(index) {
   updateTodoNotificationVisibility();
 }
 
+// Function to edit a todo - reuse existing form
+function editTodo(index) {
+  const todoSection = document.querySelector('.todo');
+  const form = document.getElementById('todo-form');
+  const input = document.getElementById('todo-input');
+  const editIndexField = document.getElementById('edit-todo-index');
+  const addBtn = document.getElementById('add-todo-btn');
+  
+  load("todos").then(items => {
+    const item = items[index];
+    if (!item) return;
+    
+    // Show todo section and form
+    todoSection.style.display = 'block';
+    form.style.display = 'block';
+    
+    // Set editing mode
+    editIndexField.value = index;
+    
+    // Populate form with current values
+    input.value = item.text;
+    input.placeholder = "Modifica attività";
+    
+    // Set current color
+    const colorRadio = document.querySelector(`input[name="todo-color"][value="${item.color || '#ffffff'}"]`);
+    if (colorRadio) colorRadio.checked = true;
+    
+    // Set current category
+    const categoryRadio = document.querySelector(`input[name="todo-category"][value="${item.category || 'Lavoro'}"]`);
+    if (categoryRadio) categoryRadio.checked = true;
+    
+    // Change button text and title
+    addBtn.textContent = "💾";
+    addBtn.title = "Salva modifiche";
+    
+    // Focus input
+    input.focus();
+    input.select();
+  });
+}
+
 // Make functions global so they can be called from HTML
 window.toggleTodo = toggleTodo;
 window.deleteTodo = deleteTodo;
@@ -341,20 +461,41 @@ form.addEventListener("submit", async (e) => {
   const text = input.value.trim();
   if (!text) return;
   
+  const editIndexField = document.getElementById('edit-todo-index');
+  const editIndex = parseInt(editIndexField.value);
+  const addBtn = document.getElementById('add-todo-btn');
+  
   // Get selected color and category
   const selectedColor = document.querySelector('input[name="todo-color"]:checked').value;
   const selectedCategory = document.querySelector('input[name="todo-category"]:checked').value;
   
   const items = (await load("todos")) || [];
-  items.push({ 
-    text, 
-    createdAt: Date.now(), 
-    completed: false,
-    color: selectedColor,
-    category: selectedCategory
-  });
+  
+  if (editIndex >= 0 && items[editIndex]) {
+    // Edit existing todo
+    items[editIndex].text = text;
+    items[editIndex].color = selectedColor;
+    items[editIndex].category = selectedCategory;
+  } else {
+    // Add new todo
+    items.push({ 
+      text, 
+      createdAt: Date.now(), 
+      completed: false,
+      status: 'todo', // New field: 'todo', 'priority', 'completed'
+      color: selectedColor,
+      category: selectedCategory
+    });
+  }
+  
   await save("todos", items);
+  
+  // Reset form
   input.value = "";
+  input.placeholder = "Aggiungi attività";
+  editIndexField.value = "-1";
+  addBtn.textContent = "✔";
+  addBtn.title = "Aggiungi alla lista";
   
   // Reset color to white and category to default
   document.getElementById('color-white').checked = true;
@@ -362,7 +503,7 @@ form.addEventListener("submit", async (e) => {
   
   renderTodos();
   
-  // Hide todo section after adding
+  // Hide todo section after adding/editing
   const todoSection = document.querySelector('.todo');
   todoSection.style.display = 'none';
   form.style.display = 'none';
@@ -1173,6 +1314,22 @@ document.addEventListener('DOMContentLoaded', function() {
     hideBtn.addEventListener('click', function() {
       console.log('Hide button clicked');
       
+      // Reset editing mode if active
+      const editIndexField = document.getElementById('edit-todo-index');
+      const addBtn = document.getElementById('add-todo-btn');
+      
+      if (editIndexField && parseInt(editIndexField.value) >= 0) {
+        todoInput.value = "";
+        todoInput.placeholder = "Aggiungi attività";
+        editIndexField.value = "-1";
+        addBtn.textContent = "✔";
+        addBtn.title = "Aggiungi alla lista";
+        
+        // Reset color and category
+        document.getElementById('color-white').checked = true;
+        document.getElementById('category-lavoro').checked = true;
+      }
+      
       // Hide everything todo-related
       const todoSection = document.querySelector('.todo');
       const todoList = document.getElementById('todo-list');
@@ -1323,6 +1480,25 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       if (cityPopover2.style.display === 'flex') {
         cityPopover2.style.display = 'none';
+      }
+      
+      // Also close todo form if editing
+      const editIndexField = document.getElementById('edit-todo-index');
+      if (editIndexField && parseInt(editIndexField.value) >= 0) {
+        const todoSection = document.querySelector('.todo');
+        const form = document.getElementById('todo-form');
+        const input = document.getElementById('todo-input');
+        const addBtn = document.getElementById('add-todo-btn');
+        
+        // Reset form
+        input.value = "";
+        input.placeholder = "Aggiungi attività";
+        editIndexField.value = "-1";
+        addBtn.textContent = "✔";
+        addBtn.title = "Aggiungi alla lista";
+        
+        todoSection.style.display = 'none';
+        form.style.display = 'none';
       }
     }
   });

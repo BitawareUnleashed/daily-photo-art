@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>New Tab</title>
+  <title>Artistic Photos - New Tab</title>
   <link rel="stylesheet" href="newtab.css" />
 </head>
 
@@ -22,8 +22,8 @@
   <!-- Bottone add todo -->
   <button id="main-add-todo-btn" title="To-do">+</button>
 
-  <!-- Bottone notifica todo -->
-  <button id="todo-notification-btn" title="Mostra todo">📝</button>
+  <!-- Bottone notifica todo 
+  <button id="todo-notification-btn" title="Mostra todo">📝</button>-->
 
   <!-- Bottone impostazioni -->
   <button id="settings-btn" title="Impostazioni">⚙️</button>
@@ -96,13 +96,13 @@
     </div>
   </div>
 
-
   <div class="todo">
     <div class="todo-header" id="todo-drag-header">
       <button id="todo-close-btn" title="Chiudi">✕</button>
     </div>
     <div class="todo-content">
       <form id="todo-form" style="display: none;">
+        <input type="hidden" id="edit-todo-index" value="-1">
         <div class="todo-input-row">
           <input id="todo-input" placeholder="Aggiungi attività" />
           <button id="add-todo-btn" type="submit" title="Aggiungi alla lista">✔</button>

@@ -350,6 +350,58 @@ h3 {
   accent-color: #fff;
 }
 
+/* Custom 3-state checkbox */
+.todo-checkbox-custom {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  border-radius: 3px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  line-height: 1;
+  transition: all 0.2s ease;
+  color: white;
+  background: transparent;
+}
+
+/* State 1: Priority/In progress (filled square) */
+.todo-checkbox-custom.state-priority {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(255, 255, 255, 0.8);
+  color: #333;
+}
+
+.todo-checkbox-custom.state-priority::after {
+  content: "■";
+  font-size: 8px;
+}
+
+/* State 2: Todo (empty) */
+.todo-checkbox-custom.state-todo {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+/* State 3: Completed (checkmark) */
+.todo-checkbox-custom.state-completed {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.8);
+}
+
+.todo-checkbox-custom.state-completed::after {
+  content: "✓";
+  font-size: 10px;
+  color: white;
+}
+
+.todo-checkbox-custom:hover {
+  border-color: rgba(255, 255, 255, 0.9);
+  transform: scale(1.1);
+}
+
 #todo-list button {
   background: transparent;
   border: 0;
@@ -715,7 +767,8 @@ h3 {
 .clean-view #quote-language,
 .clean-view #main-add-todo-btn,
 .clean-view #todo-notification-btn,
-.clean-view .weather-status-bar {
+.clean-view .weather-status-bar,
+.clean-view .todo-preview-panel {
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.5s ease-in-out;
@@ -1027,4 +1080,28 @@ h3 {
   z-index: 20;
   pointer-events: auto;
   padding: 8px 12px 4px 12px;
+}
+
+.todo-preview-delete:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Edit button styles */
+.todo-edit {
+  background: transparent;
+  border: 0;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background 0.2s;
+  font-size: 14px;
+}
+
+.todo-edit:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.todo-preview-edit:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
 }
