@@ -36,6 +36,9 @@
     <option value="de">DE</option>
   </select>
 
+  <!-- Pannello preview TODO sotto i bottoni, in overlay ma allineato -->
+  <div id="todo-preview-panel" class="todo-preview-panel" style="display:none;"></div>
+
   <!-- Popover impostazioni -->
   <div id="settings-popover" style="display: none;">
     <div class="popover-overlay"></div>
@@ -66,7 +69,7 @@
         <input id="city-input-1" placeholder="Es. Roma" />
 
         <p>
-          <button id="save-city-1">Salva</button>
+          <button id="save-city-1" class="save-city-btn">Salva</button>
           <button class="close-city-popover cancel-btn">Annulla</button>
         </p>
       </div>
@@ -86,7 +89,7 @@
         <input id="city-input-2" placeholder="Es. Milano" />
 
         <p>
-          <button id="save-city-2">Salva</button>
+          <button id="save-city-2" class="save-city-btn">Salva</button>
           <button class="close-city-popover cancel-btn">Annulla</button>
         </p>
       </div>

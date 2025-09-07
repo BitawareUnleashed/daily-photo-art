@@ -162,44 +162,78 @@ const list = document.getElementById("todo-list");
 // Alternative version with event listener instead of inline onclick
 async function renderTodos() {
   const items = (await load("todos")) || [];
-  
   list.innerHTML = items
     .map((item, i) => {
       const isCompleted = item.completed || false;
       const color = item.color || '#ffffff';
       const textStyle = isCompleted 
-        ? `style="text-decoration: line-through; opacity: 0.6; color: ${color};"` 
-        : `style="color: ${color};"`;
+        ? `style=\"text-decoration: line-through; opacity: 0.6; color: ${color};\"` 
+        : `style=\"color: ${color};\"`;
       const checkboxChecked = isCompleted ? 'checked' : '';
-      
       return `
         <li>
-          <div style="display: flex; align-items: center; gap: 8px; flex: 1;">
-            <input type="checkbox" ${checkboxChecked} data-index="${i}" class="todo-checkbox" style="margin: 0;">
+          <div style=\"display: flex; align-items: center; gap: 8px; flex: 1;\">
+            <input type=\"checkbox\" ${checkboxChecked} data-index=\"${i}\" class=\"todo-checkbox\" style=\"margin: 0;\">
             <span ${textStyle}>${item.text}</span>
           </div>
-          <button data-index="${i}" class="todo-delete">✕</button>
+          <button data-index=\"${i}\" class=\"todo-delete\">✕</button>
         </li>
       `;
     })
     .join("");
-    
-  // Add event listener after creating HTML
-  document.querySelectorAll('.todo-checkbox').forEach(checkbox => {
+
+  // Aggiorna preview panel con stessa struttura di #todo-list
+  const previewPanel = document.getElementById('todo-preview-panel');
+  if (items.length > 0) {
+    previewPanel.style.display = 'block';
+    previewPanel.innerHTML = items
+      .map((item, i) => {
+        const isCompleted = item.completed || false;
+        const color = item.color || '#ffffff';
+        const textStyle = isCompleted 
+          ? `style="text-decoration: line-through; opacity: 0.6; color: ${color};"` 
+          : `style="color: ${color};"`;
+        const checkboxChecked = isCompleted ? 'checked' : '';
+        return `
+          <li style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, .15); font-size: 16px;">
+            <div style="display: flex; align-items: center; gap: 8px; flex: 1;">
+              <input type="checkbox" ${checkboxChecked} data-index="${i}" class="todo-preview-checkbox" style="width: 16px; height: 16px; accent-color: #fff; margin: 0;">
+              <span ${textStyle}>${item.text}</span>
+            </div>
+          </li>
+        `;
+      })
+      .join("");
+  } else {
+    previewPanel.style.display = 'none';
+    previewPanel.innerHTML = '';
+  }
+
+  // Add event listener after creating HTML - only to main list checkboxes
+  const mainListCheckboxes = list.querySelectorAll('.todo-checkbox');
+  mainListCheckboxes.forEach(checkbox => {
     checkbox.addEventListener('change', async (e) => {
       const index = parseInt(e.target.dataset.index);
       await toggleTodo(index);
     });
   });
   
-  document.querySelectorAll('.todo-delete').forEach(button => {
+  // Add event listeners for preview panel checkboxes
+  const previewCheckboxes = previewPanel.querySelectorAll('.todo-preview-checkbox');
+  previewCheckboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', async (e) => {
+      const index = parseInt(e.target.dataset.index);
+      await toggleTodo(index);
+    });
+  });
+  
+  const deleteButtons = list.querySelectorAll('.todo-delete');
+  deleteButtons.forEach(button => {
     button.addEventListener('click', async (e) => {
       const index = parseInt(e.target.dataset.index);
       await deleteTodo(index);
     });
   });
-
-  // Update todo notification button visibility
   updateTodoNotificationVisibility();
 }
 

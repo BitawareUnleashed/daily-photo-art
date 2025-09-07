@@ -965,3 +965,18 @@ h3 {
   pointer-events: none;
   transition: opacity 0.5s ease-in-out;
 }
+
+.todo-preview-panel {
+  position: absolute;
+  left: 0;
+  top: 25%;
+  width: max-content;
+  min-width: 25%;
+  max-width: 60%;
+  background: rgba(0,0,0,0.10);
+  border-radius: 10px;
+  box-shadow: 0 2px 8px #0001;
+  z-index: 20;
+  pointer-events: auto;
+  padding: 8px 12px 4px 12px;
+}
