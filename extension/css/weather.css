@@ -1,0 +1,57 @@
+/* Weather styles */
+
+#weather {
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+/* Weather status bar */
+.weather-status-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(20px);
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  font-size: 14px;
+  z-index: 1000;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.weather-location {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.weather-location:last-child {
+  justify-content: flex-end;
+}
+
+.weather-status-bar #weather,
+.weather-status-bar #weather-2 {
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.weather-status-bar #change-city-btn,
+.weather-status-bar #change-city-btn-2 {
+  background: transparent;
+  border: none;
+  color: var(--fg);
+  cursor: pointer;
+  font-size: 16px;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.weather-status-bar #change-city-btn:hover,
+.weather-status-bar #change-city-btn-2:hover {
+  opacity: 1;
+}

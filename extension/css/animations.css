@@ -1,0 +1,146 @@
+/* Animations and clean view */
+
+/* Blinking animation */
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0.3; }
+}
+
+.blinking {
+  animation: blink 1s ease-in-out 4;
+}
+
+/* Clean view mode */
+.clean-view .container,
+.clean-view #settings-btn,
+.clean-view #quote-language,
+.clean-view #main-add-todo-btn,
+.clean-view #todo-notification-btn,
+.clean-view .weather-status-bar,
+.clean-view .todo-preview-panel {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease-in-out;
+}
+
+.container,
+#quote-language,
+#main-add-todo-btn,
+#todo-notification-btn,
+.weather-status-bar {
+  opacity: 1;
+  pointer-events: auto;
+  transition: opacity 0.5s ease-in-out;
+}
+
+/* Clear button remains visible in clean mode */
+#clear-btn {
+  opacity: 1;
+  pointer-events: auto;
+  transition: all 0.3s ease;
+  z-index: 1001;
+}
+
+/* Clean mode animations */
+.clean-view .top {
+  transform: translateY(-50px);
+  transition: all 0.6s ease-in-out;
+}
+
+.clean-view .center {
+  transform: scale(0.8);
+  transition: all 0.5s ease-in-out;
+}
+
+.clean-view .bottom {
+  transform: translateY(50px);
+  transition: all 0.7s ease-in-out;
+}
+
+.top,
+.center,
+.bottom {
+  transform: translateY(0) scale(1);
+  transition: all 0.6s ease-in-out;
+  margin-top: 5%;
+}
+
+/* Clean mode button state */
+#clear-btn.clean-mode {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+#clear-btn.clean-mode:hover {
+  background: rgba(255, 255, 255, 0.5);
+  border-color: rgba(255, 255, 255, 0.7);
+}
+
+/* Photo info styles */
+#photo-info {
+  position: fixed;
+  bottom: 20%;
+  right: 25px;
+  color: white;
+  font-size: 12px;
+  line-height: 1;
+  z-index: 100;
+  display: none;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+  white-space: nowrap;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+#photo-text {
+  margin: 0;
+  font-weight: 500;
+}
+
+/* Hide photo info in clean view */
+.clean-view #photo-info {
+  opacity: 0.75;
+  pointer-events: none;
+  transition: opacity 0.5s ease-in-out;
+}
+
+/* Todo preview panel */
+.todo-preview-panel {
+  position: absolute;
+  left: 0;
+  top: 25%;
+  width: max-content;
+  min-width: 25%;
+  max-width: 60%;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 10px;
+  box-shadow: 0 2px 8px #0001;
+  z-index: 20;
+  pointer-events: auto;
+  padding: 8px 12px 4px 12px;
+}
+
+.todo-preview-delete:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Edit button styles */
+.todo-edit {
+  background: transparent;
+  border: 0;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background 0.2s;
+  font-size: 14px;
+}
+
+.todo-edit:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.todo-preview-edit:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+}

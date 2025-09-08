@@ -5,7 +5,17 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Artistic Photos - New Tab</title>
-  <link rel="stylesheet" href="newtab.css" />
+  
+  <!-- CSS Files -->
+  <link rel="stylesheet" href="css/variables.css" />
+  <link rel="stylesheet" href="css/layout.css" />
+  <link rel="stylesheet" href="css/welcome.css" />
+  <link rel="stylesheet" href="css/buttons.css" />
+  <link rel="stylesheet" href="css/todo.css" />
+  <link rel="stylesheet" href="css/weather.css" />
+  <link rel="stylesheet" href="css/popover.css" />
+  <link rel="stylesheet" href="css/animations.css" />
+  
   <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
 </head>
 
@@ -165,7 +175,7 @@
     <section class="top">
       <div id="greeting"></div>
       <div id="clock"></div>
-      <input id="focus" placeholder="Qual è il tuo focus di oggi?" />
+      <input id="focus" placeholder="Qual è il tuo focus di oggi?" maxlength="14" />
       <div id="focus-display"></div>
     </section>
 
@@ -191,7 +201,16 @@
     </div>
   </div>
 
-  <script src="newtab.js"></script>
+  <!-- Load modular JavaScript files -->
+  <script src="js/storage.js"></script>
+  <script src="js/clock.js"></script>
+  <script src="js/focus.js"></script>
+  <script src="js/translations.js"></script>
+  <script src="js/quotes.js"></script>
+  <script src="js/todo.js"></script>
+  <script src="js/weather.js"></script>
+  <script src="js/background.js"></script>
+  <script src="js/main.js"></script>
 </body>
 
 </html>
