@@ -7,19 +7,55 @@
 const BACKGROUND_CACHE_DURATION = 5 * 60 * 1000; // 15 minutes in milliseconds
 
 /**
- * Save background to cache with timestamp
+ * Save background to cache with timestamp and image data
  */
-function saveBackgroundToCache(imgUrl, photoData, photoId, source) {
-  // For blob URLs, we need to save the actual image data
-  // For now, we'll just cache the metadata and reload the image when needed
-  const cacheData = {
-    photoData: photoData,
-    photoId: photoId,
-    source: source,
-    timestamp: Date.now()
-  };
-  localStorage.setItem('cachedBackground', JSON.stringify(cacheData));
-  console.log('💾 Background metadata saved to cache:', { photoId, source });
+async function saveBackgroundToCache(imgUrl, photoData, photoId, source) {
+  try {
+    console.log('💾 Saving background to cache with image data...');
+    
+    // Convert any image URL to base64 for storage
+    let imageBase64 = null;
+    if (imgUrl) {
+      try {
+        console.log('🔄 Converting image to base64 for caching:', imgUrl);
+        const response = await fetch(imgUrl);
+        if (response.ok) {
+          const blob = await response.blob();
+          
+          // Convert blob to base64
+          const reader = new FileReader();
+          imageBase64 = await new Promise((resolve) => {
+            reader.onload = () => resolve(reader.result);
+            reader.readAsDataURL(blob);
+          });
+          
+          console.log('✅ Image converted to base64 for caching');
+        } else {
+          console.warn('⚠️ Failed to fetch image for caching:', response.status, response.statusText);
+        }
+      } catch (error) {
+        console.warn('⚠️ Failed to convert image to base64, will cache metadata only:', error);
+      }
+    }
+    
+    const cacheData = {
+      photoData: photoData,
+      photoId: photoId,
+      source: source,
+      timestamp: Date.now(),
+      imageBase64: imageBase64 // Store the actual image data
+    };
+    
+    localStorage.setItem('cachedBackground', JSON.stringify(cacheData));
+    console.log('💾 Background saved to cache:', { 
+      photoId, 
+      source, 
+      hasImageData: !!imageBase64,
+      size: imageBase64 ? `${Math.round(imageBase64.length / 1024)}KB` : 'No image data'
+    });
+  } catch (error) {
+    console.error('❌ Error saving background to cache:', error);
+  }
 }
 
 /**
@@ -48,25 +84,60 @@ async function loadBackgroundFromCache() {
     console.log(`📦 Cache valid: ${age < cacheDuration}`);
     
     if (age < cacheDuration) {
-      console.log('✅ Cache is valid, reloading image...');
+      console.log('✅ Cache is valid');
       console.log('📦 Cached source:', cacheData.source);
       console.log('📦 Cached photoId:', cacheData.photoId);
+      console.log('📦 Has cached image data:', !!cacheData.imageBase64);
       
-      // Reload the image from the original source
-      if ((cacheData.source === 'codicepunto.it' || cacheData.source === 'codicepunto') && cacheData.photoId) {
-        const jpgUrl = `https://raw.githubusercontent.com/bitawareunleashed/photo-storage/main/${cacheData.photoId}.JPG`;
+      // If we have cached image data, use it directly (no network call!)
+      if (cacheData.imageBase64) {
+        console.log('� Using cached image data (offline mode)');
         try {
-          console.log(`🔄 Reloading cached image: ${jpgUrl}`);
-          const response = await fetch(jpgUrl);
+          // Convert base64 back to blob URL
+          const response = await fetch(cacheData.imageBase64);
+          const blob = await response.blob();
+          const imgUrl = URL.createObjectURL(blob);
+          
+          console.log('✅ Cached image loaded from storage');
+          return { 
+            imgUrl: imgUrl, 
+            photoData: cacheData.photoData, 
+            photoId: cacheData.photoId,
+            source: cacheData.source,
+            fromCache: true
+          };
+        } catch (error) {
+          console.warn('⚠️ Failed to load cached image data:', error);
+          // Fall back to network reload below
+        }
+      }
+      
+      // Fallback: reload the image from the original source (network call)
+      console.log('🔄 No cached image data, reloading from network...');
+      
+      let reloadUrl = null;
+      if ((cacheData.source === 'codicepunto.it' || cacheData.source === 'codicepunto') && cacheData.photoId) {
+        reloadUrl = `https://raw.githubusercontent.com/bitawareunleashed/photo-storage/main/${cacheData.photoId}.JPG`;
+      } else if (cacheData.source === 'picsum' && cacheData.photoId) {
+        reloadUrl = `https://picsum.photos/1536/864?random=${cacheData.photoId}`;
+      } else if (cacheData.source === 'unsplash' && cacheData.photoId) {
+        reloadUrl = `https://source.unsplash.com/1536x864/?${cacheData.photoId}`;
+      }
+      
+      if (reloadUrl) {
+        try {
+          console.log(`🔄 Reloading cached image from ${cacheData.source}: ${reloadUrl}`);
+          const response = await fetch(reloadUrl);
           if (response.ok) {
             const blob = await response.blob();
             const imgUrl = URL.createObjectURL(blob);
-            console.log('✅ Cached image reloaded successfully');
+            console.log('✅ Cached image reloaded successfully from network');
             return { 
               imgUrl: imgUrl, 
               photoData: cacheData.photoData, 
               photoId: cacheData.photoId,
-              source: cacheData.source 
+              source: cacheData.source,
+              fromCache: false
             };
           } else {
             console.error(`❌ Failed to reload cached image: ${response.status} ${response.statusText}`);
@@ -74,6 +145,8 @@ async function loadBackgroundFromCache() {
         } catch (error) {
           console.error('❌ Network error reloading cached image:', error);
         }
+      } else {
+        console.warn('⚠️ Unknown source for cache reload:', cacheData.source);
       }
       
       console.log('⚠️ Cache is valid but image reload failed - keeping cache for next time');
@@ -202,7 +275,7 @@ async function setBackground() {
     bgElement.style.setProperty('background-repeat', 'no-repeat', 'important');
 
     // Save to cache
-    saveBackgroundToCache(imgUrl, photoData, photoId, source);
+    await saveBackgroundToCache(imgUrl, photoData, photoId, source);
 
     // Show photo info
     if (photoData && photoInfoElement) {
