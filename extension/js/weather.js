@@ -39,7 +39,12 @@ async function loadWeatherForCity(cityName) {
   try {
     // First get city coordinates
     const location = await getCoordinates(cityName);
-    const texts = window.currentTexts || { cityNotFound: "Città non trovata", humidity: "Umidità", wind: "Vento" };
+    const texts = window.currentTexts || { 
+      cityNotFound: "Città non trovata", 
+      humidity: "Umidità", 
+      wind: "Vento",
+      weatherNotAvailable: "Meteo non disponibile"
+    };
     
     if (!location) {
       const weatherEl = document.getElementById("weather");
@@ -87,7 +92,12 @@ async function loadWeatherForCity2(cityName) {
   try {
     // First get city coordinates
     const location = await getCoordinates(cityName);
-    const texts = window.currentTexts || { cityNotFound: "Città non trovata", humidity: "Umidità", wind: "Vento" };
+    const texts = window.currentTexts || { 
+      cityNotFound: "Città non trovata", 
+      humidity: "Umidità", 
+      wind: "Vento",
+      weatherNotAvailable: "Meteo non disponibile"
+    };
     
     if (!location) {
       const weatherEl = document.getElementById("weather-2");
@@ -133,7 +143,11 @@ async function loadWeatherForCity2(cityName) {
 async function loadWeather() {
   try {
     const cfg = await load("weatherCfg");
-    const texts = window.currentTexts || { weatherNotAvailable: "Meteo non disponibile" };
+    const texts = window.currentTexts || { 
+      weatherNotAvailable: "Meteo non disponibile",
+      humidity: "Umidità", 
+      wind: "Vento"
+    };
     
     if (!cfg || !cfg.lat || !cfg.lon) {
       const weatherEl = document.getElementById("weather");
@@ -174,7 +188,11 @@ async function loadWeather() {
 async function loadWeather2() {
   try {
     const cfg = await load("weatherCfg2");
-    const texts = window.currentTexts || { weatherNotAvailable: "Meteo non disponibile" };
+    const texts = window.currentTexts || { 
+      weatherNotAvailable: "Meteo non disponibile",
+      humidity: "Umidità", 
+      wind: "Vento"
+    };
     
     if (!cfg || !cfg.lat || !cfg.lon) {
       const weatherEl = document.getElementById("weather-2");
