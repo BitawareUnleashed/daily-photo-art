@@ -544,6 +544,22 @@ async function loadQuote() {
   if (currentQuote) {
     const translatedQuote = await translateText(currentQuote.text, selectedLang);
     document.getElementById("quote").textContent = `"${translatedQuote}" — ${currentQuote.author}`;
+    
+    // Show/hide original quote button
+    const originalQuoteBtn = document.getElementById('original-quote-btn');
+    if (originalQuoteBtn) {
+      // Show button only if we actually translated the text (original != translated)
+      if (selectedLang !== 'en' && translatedQuote !== currentQuote.text) {
+        originalQuoteBtn.style.display = 'inline-block';
+        originalQuoteBtn.textContent = '🌐';
+        originalQuoteBtn.title = 'Tieni premuto per vedere la lingua originale';
+        originalQuoteBtn.translatedText = `"${translatedQuote}" — ${currentQuote.author}`;
+        originalQuoteBtn.originalText = `"${currentQuote.text}" — ${currentQuote.author}`;
+      } else {
+        originalQuoteBtn.style.display = 'none';
+      }
+    }
+    
     console.log('Quote translated:', { 
       original: currentQuote.text, 
       translated: translatedQuote, 
@@ -618,6 +634,22 @@ async function loadQuote() {
       const translatedQuote = await translateText(quote.text, selectedLang);
       
       document.getElementById("quote").textContent = `"${translatedQuote}" — ${quote.author}`;
+      
+      // Show/hide original quote button
+      const originalQuoteBtn = document.getElementById('original-quote-btn');
+      if (originalQuoteBtn) {
+        // Show button only if we actually translated the text (original != translated)
+        if (selectedLang !== 'en' && translatedQuote !== quote.text) {
+          originalQuoteBtn.style.display = 'inline-block';
+          originalQuoteBtn.textContent = '🌐';
+          originalQuoteBtn.title = 'Tieni premuto per vedere la lingua originale';
+          originalQuoteBtn.translatedText = `"${translatedQuote}" — ${quote.author}`;
+          originalQuoteBtn.originalText = `"${quote.text}" — ${quote.author}`;
+        } else {
+          originalQuoteBtn.style.display = 'none';
+        }
+      }
+      
       console.log(`✅ ${quoteServices[i].name} success:`, { 
         original: quote.text, 
         translated: translatedQuote, 
@@ -1529,6 +1561,17 @@ document.addEventListener('DOMContentLoaded', function() {
     languageSelect.addEventListener('change', async function() {
       await save('quoteLang', this.value);
       
+      // Reset original quote button state
+      const originalQuoteBtn = document.getElementById('original-quote-btn');
+      if (originalQuoteBtn && originalQuoteBtn.showingOriginal !== undefined) {
+        originalQuoteBtn.showingOriginal = false;
+        originalQuoteBtn.translatedText = null;
+        originalQuoteBtn.originalText = null;
+        originalQuoteBtn.textContent = '🌐';
+        originalQuoteBtn.title = 'Tieni premuto per vedere la lingua originale';
+        originalQuoteBtn.style.background = 'transparent';
+      }
+      
       // Translate interface in new language
       translateInterface(this.value);
       
@@ -1547,6 +1590,62 @@ document.addEventListener('DOMContentLoaded', function() {
       updatePhotoInfo();
       
       loadQuote(); // Now translates current quote instead of loading a new one
+    });
+  }
+
+  // Add event listener for original quote button (hold to show original)
+  const originalQuoteBtn = document.getElementById('original-quote-btn');
+  if (originalQuoteBtn) {
+    originalQuoteBtn.showingOriginal = false;
+    originalQuoteBtn.originalText = null;
+    originalQuoteBtn.translatedText = null;
+    
+    function showOriginalQuote() {
+      if (!currentQuote || originalQuoteBtn.showingOriginal || !originalQuoteBtn.originalText) return;
+      
+      const quoteEl = document.getElementById('quote');
+      
+      // Show original version
+      quoteEl.textContent = originalQuoteBtn.originalText;
+      originalQuoteBtn.textContent = '👁️';
+      originalQuoteBtn.title = 'Rilascia per tornare alla traduzione';
+      originalQuoteBtn.showingOriginal = true;
+      originalQuoteBtn.style.background = 'rgba(255, 255, 255, 0.2)';
+    }
+    
+    function showTranslatedQuote() {
+      if (!currentQuote || !originalQuoteBtn.showingOriginal || !originalQuoteBtn.translatedText) return;
+      
+      const quoteEl = document.getElementById('quote');
+      
+      // Restore translated version
+      quoteEl.textContent = originalQuoteBtn.translatedText;
+      
+      originalQuoteBtn.textContent = '🌐';
+      originalQuoteBtn.title = 'Tieni premuto per vedere la lingua originale';
+      originalQuoteBtn.showingOriginal = false;
+      originalQuoteBtn.style.background = 'transparent';
+    }
+    
+    // Mouse events
+    originalQuoteBtn.addEventListener('mousedown', showOriginalQuote);
+    originalQuoteBtn.addEventListener('mouseup', showTranslatedQuote);
+    originalQuoteBtn.addEventListener('mouseleave', showTranslatedQuote);
+    
+    // Touch events for mobile
+    originalQuoteBtn.addEventListener('touchstart', function(e) {
+      e.preventDefault();
+      showOriginalQuote();
+    });
+    originalQuoteBtn.addEventListener('touchend', function(e) {
+      e.preventDefault();
+      showTranslatedQuote();
+    });
+    originalQuoteBtn.addEventListener('touchcancel', showTranslatedQuote);
+    
+    // Prevent default click behavior
+    originalQuoteBtn.addEventListener('click', function(e) {
+      e.preventDefault();
     });
   } else {
     // If there's no dropdown, use Italian as default
