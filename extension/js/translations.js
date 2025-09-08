@@ -38,6 +38,8 @@ const translations = {
     welcomeInputPlaceholder: "Inserisci il tuo nome",
     welcomeStartButton: "Inizia",
     photoBy: "Foto di",
+    originalQuoteTooltip: "Tieni premuto per vedere la lingua originale",
+    releaseToReturnTranslation: "Rilascia per tornare alla traduzione",
     categoryWork: "Lavoro",
     categoryHome: "Casa", 
     categoryHobby: "Hobby",
@@ -82,6 +84,8 @@ const translations = {
     welcomeInputPlaceholder: "Enter your name",
     welcomeStartButton: "Start",
     photoBy: "Photo by",
+    originalQuoteTooltip: "Hold to see original language",
+    releaseToReturnTranslation: "Release to return to translation",
     categoryWork: "Work",
     categoryHome: "Home",
     categoryHobby: "Hobby", 
@@ -126,6 +130,8 @@ const translations = {
     welcomeInputPlaceholder: "Entrez votre nom",
     welcomeStartButton: "Commencer",
     photoBy: "Photo par",
+    originalQuoteTooltip: "Maintenez pour voir la langue originale",
+    releaseToReturnTranslation: "Relâchez pour revenir à la traduction",
     categoryWork: "Travail",
     categoryHome: "Maison",
     categoryHobby: "Loisirs",
@@ -170,6 +176,8 @@ const translations = {
     welcomeInputPlaceholder: "Namen eingeben",
     welcomeStartButton: "Start",
     photoBy: "Foto von",
+    originalQuoteTooltip: "Halten um Originalsprache zu sehen",
+    releaseToReturnTranslation: "Loslassen um zur Übersetzung zurückzukehren",
     categoryWork: "Arbeit",
     categoryHome: "Zuhause", 
     categoryHobby: "Hobby",
@@ -286,6 +294,13 @@ function translateInterface(lang) {
       label.textContent = `${emoji} ${texts[categoryKey]}`;
     }
   });
+  
+  // Update original quote button tooltip after translations are loaded
+  setTimeout(() => {
+    if (window.QuoteUtils && window.QuoteUtils.updateOriginalQuoteTooltip) {
+      window.QuoteUtils.updateOriginalQuoteTooltip();
+    }
+  }, 50); // Small delay to ensure quotes module is ready
 }
 
 // Export for global access
@@ -296,5 +311,15 @@ if (typeof window !== 'undefined') {
     updateElementText, 
     updatePhotoInfo, 
     translateInterface 
+  };
+  
+  // Also expose TranslationManager for backward compatibility
+  window.TranslationManager = {
+    getTranslation: (key) => {
+      const languageSelect = document.getElementById('quote-language');
+      const currentLang = languageSelect ? languageSelect.value : (localStorage.getItem('quoteLang') || 'it');
+      const texts = translations[currentLang] || translations['it'];
+      return texts[key] || key;
+    }
   };
 }

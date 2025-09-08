@@ -117,14 +117,15 @@
   position: fixed;
   top: 64px;
   right: 24px;
+  width: 32px; /* Fixed width to match other compact buttons */
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 6px;
   color: white;
-  padding: 6px 12px;
-  font-size: 14px;
+  padding: 6px 4px; /* Reduced horizontal padding */
+  font-size: 12px; /* Slightly smaller font */
   cursor: pointer;
   outline: none;
   transition: all 0.2s;
@@ -132,6 +133,9 @@
   text-transform: uppercase;
   z-index: 10000;
   display: inline-flex;
+  appearance: none; /* Remove default select styling */
+  -webkit-appearance: none;
+  -moz-appearance: none;
 }
 
 #quote-language option {

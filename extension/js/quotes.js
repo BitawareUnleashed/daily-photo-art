@@ -22,10 +22,14 @@ async function translateText(text, targetLang = 'it') {
 }
 
 async function loadQuote() {
+  console.log('📝 loadQuote() called');
+  console.log('📝 currentQuote state:', currentQuote);
   const selectedLang = document.getElementById('quote-language')?.value || 'it';
+  console.log('Selected language:', selectedLang);
   
   // If we already have a quote and are just changing language, translate it
   if (currentQuote) {
+    console.log('📝 Translating existing quote:', currentQuote);
     const translatedQuote = await translateText(currentQuote.text, selectedLang);
     document.getElementById("quote").textContent = `"${translatedQuote}" — ${currentQuote.author}`;
     
@@ -35,11 +39,15 @@ async function loadQuote() {
       if (selectedLang !== 'en' && translatedQuote !== currentQuote.text) {
         originalQuoteBtn.style.display = 'inline-block';
         originalQuoteBtn.textContent = '🌐';
-        originalQuoteBtn.title = 'Tieni premuto per vedere la lingua originale';
+        console.log('📝 TranslationManager available?', !!window.TranslationManager);
+        originalQuoteBtn.title = window.TranslationManager ? window.TranslationManager.getTranslation('originalQuoteTooltip') : 'Tieni premuto per vedere la lingua originale';
+        console.log('📝 Tooltip set to:', originalQuoteBtn.title);
         originalQuoteBtn.translatedText = `"${translatedQuote}" — ${currentQuote.author}`;
         originalQuoteBtn.originalText = `"${currentQuote.text}" — ${currentQuote.author}`;
+        console.log('📝 Original quote button shown with tooltip:', originalQuoteBtn.title);
       } else {
         originalQuoteBtn.style.display = 'none';
+        console.log('📝 Original quote button hidden');
       }
     }
     
@@ -52,7 +60,15 @@ async function loadQuote() {
     return;
   }
   
-  // Array of free quote services as fallback
+  console.log('📝 No current quote, getting new one...');
+  await getNewQuote();
+}
+
+async function getNewQuote() {
+  console.log('🔄 Loading new quote...');
+  const selectedLang = document.getElementById('quote-language')?.value || 'it';
+  
+  // Array of quote services to try
   const quoteServices = [
     {
       name: 'ZenQuotes',
@@ -66,22 +82,6 @@ async function loadQuote() {
       name: 'Quotable',
       fetch: async () => {
         const r = await fetch("https://api.quotable.io/random");
-        const j = await r.json();
-        return { text: j.content, author: j.author };
-      }
-    },
-    {
-      name: 'QuoteGarden',
-      fetch: async () => {
-        const r = await fetch("https://quote-garden.herokuapp.com/api/v3/quotes/random");
-        const j = await r.json();
-        return { text: j.data.quoteText, author: j.data.quoteAuthor };
-      }
-    },
-    {
-      name: 'Quotable Alternative',
-      fetch: async () => {
-        const r = await fetch("https://api.quotable.io/random?maxLength=150");
         const j = await r.json();
         return { text: j.content, author: j.author };
       }
@@ -104,14 +104,18 @@ async function loadQuote() {
     }
   ];
 
+  // Try each service until one works
   for (let i = 0; i < quoteServices.length; i++) {
     try {
-      console.log(`Trying ${quoteServices[i].name}...`);
+      console.log(`📝 Trying ${quoteServices[i].name}...`);
       
       const quote = await quoteServices[i].fetch();
       currentQuote = quote;
+      console.log('📝 Selected quote:', quote);
       
       const translatedQuote = await translateText(quote.text, selectedLang);
+      console.log('📝 Translated quote:', translatedQuote);
+      
       document.getElementById("quote").textContent = `"${translatedQuote}" — ${quote.author}`;
       
       // Show/hide original quote button
@@ -120,37 +124,42 @@ async function loadQuote() {
         if (selectedLang !== 'en' && translatedQuote !== quote.text) {
           originalQuoteBtn.style.display = 'inline-block';
           originalQuoteBtn.textContent = '🌐';
-          originalQuoteBtn.title = 'Tieni premuto per vedere la lingua originale';
+          console.log('📝 TranslationManager available?', !!window.TranslationManager);
+          originalQuoteBtn.title = window.TranslationManager ? window.TranslationManager.getTranslation('originalQuoteTooltip') : 'Tieni premuto per vedere la lingua originale';
+          console.log('📝 Tooltip set to:', originalQuoteBtn.title);
           originalQuoteBtn.translatedText = `"${translatedQuote}" — ${quote.author}`;
           originalQuoteBtn.originalText = `"${quote.text}" — ${quote.author}`;
+          console.log('📝 Original quote button shown');
         } else {
           originalQuoteBtn.style.display = 'none';
+          console.log('📝 Original quote button hidden');
         }
       }
       
-      console.log(`✅ ${quoteServices[i].name} success:`, { 
-        original: quote.text, 
-        translated: translatedQuote, 
-        author: quote.author,
-        lang: selectedLang 
-      });
-      
+      console.log(`✅ ${quoteServices[i].name} success!`);
       return;
       
     } catch (error) {
       console.warn(`❌ ${quoteServices[i].name} failed:`, error.message);
       
       if (i === quoteServices.length - 1) {
+        console.error('📝 All quote services failed');
         document.getElementById("quote").textContent = "Impossibile caricare citazione al momento.";
-        console.error('All quote services failed');
       }
     }
   }
 }
 
-async function getNewQuote() {
-  currentQuote = null;
-  loadQuote();
+/**
+ * Update the tooltip of the original quote button with current translation
+ */
+function updateOriginalQuoteTooltip() {
+  const originalQuoteBtn = document.getElementById('original-quote-btn');
+  if (originalQuoteBtn && originalQuoteBtn.style.display !== 'none' && window.TranslationManager) {
+    const newTooltip = window.TranslationManager.getTranslation('originalQuoteTooltip');
+    originalQuoteBtn.title = newTooltip;
+    console.log('📝 Tooltip updated to:', newTooltip);
+  }
 }
 
 // Export for global access
@@ -159,6 +168,7 @@ if (typeof window !== 'undefined') {
     translateText, 
     loadQuote, 
     getNewQuote,
-    getCurrentQuote: () => currentQuote 
+    getCurrentQuote: () => currentQuote,
+    updateOriginalQuoteTooltip
   };
 }

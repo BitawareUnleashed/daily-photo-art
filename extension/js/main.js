@@ -400,7 +400,6 @@ function setupQuoteEventListeners() {
           originalQuoteBtn.translatedText = null;
           originalQuoteBtn.originalText = null;
           originalQuoteBtn.textContent = '🌐';
-          originalQuoteBtn.title = 'Tieni premuto per vedere la lingua originale';
           originalQuoteBtn.style.background = 'transparent';
         }
         
@@ -433,9 +432,6 @@ function setupQuoteEventListeners() {
       if (window.TranslationUtils) {
         window.TranslationUtils.translateInterface('it');
       }
-      if (window.QuoteUtils) {
-        window.QuoteUtils.loadQuote();
-      }
     }
 
     // Original quote button (hold to show original)
@@ -455,6 +451,7 @@ function setupOriginalQuoteButton() {
   originalQuoteBtn.translatedText = null;
   
   function showOriginalQuote() {
+    const currentQuote = window.QuoteUtils ? window.QuoteUtils.getCurrentQuote() : null;
     if (!currentQuote || originalQuoteBtn.showingOriginal || !originalQuoteBtn.originalText) return;
     
     const quoteEl = document.getElementById('quote');
@@ -462,12 +459,13 @@ function setupOriginalQuoteButton() {
     // Show original version
     quoteEl.textContent = originalQuoteBtn.originalText;
     originalQuoteBtn.textContent = '👁️';
-    originalQuoteBtn.title = 'Rilascia per tornare alla traduzione';
+    originalQuoteBtn.title = window.TranslationManager ? window.TranslationManager.getTranslation('releaseToReturnTranslation') : 'Rilascia per tornare alla traduzione';
     originalQuoteBtn.showingOriginal = true;
     originalQuoteBtn.style.background = 'rgba(255, 255, 255, 0.2)';
   }
   
   function showTranslatedQuote() {
+    const currentQuote = window.QuoteUtils ? window.QuoteUtils.getCurrentQuote() : null;
     if (!currentQuote || !originalQuoteBtn.showingOriginal || !originalQuoteBtn.translatedText) return;
     
     const quoteEl = document.getElementById('quote');
@@ -476,7 +474,7 @@ function setupOriginalQuoteButton() {
     quoteEl.textContent = originalQuoteBtn.translatedText;
     
     originalQuoteBtn.textContent = '🌐';
-    originalQuoteBtn.title = 'Tieni premuto per vedere la lingua originale';
+    originalQuoteBtn.title = window.TranslationManager ? window.TranslationManager.getTranslation('originalQuoteTooltip') : 'Tieni premuto per vedere la lingua originale';
     originalQuoteBtn.showingOriginal = false;
     originalQuoteBtn.style.background = 'transparent';
   }
