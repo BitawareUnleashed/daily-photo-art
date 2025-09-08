@@ -1,10 +1,42 @@
 /**
  * Background management module for Daily Photo Art extension
- * Handles background image loading from multiple sources
+ * Handles background image loading from multiple sources with quality checks
  */
 
 // Cache configuration
 const BACKGROUND_CACHE_DURATION = 5 * 60 * 1000; // 15 minutes in milliseconds
+
+/**
+ * Check if cached image is of high quality - STRICT criteria
+ */
+function isCachedImageGoodQuality(cacheData) {
+  if (!cacheData || !cacheData.imageBase64) {
+    console.log('📊 No cached image data found');
+    return false;
+  }
+  
+  // Check image size (base64 encoded images should be reasonably large for good quality)
+  const base64Length = cacheData.imageBase64.length;
+  const estimatedSizeKB = (base64Length * 3/4) / 1024; // Rough estimate
+  
+  // STRICT SIZE REQUIREMENT - Higher threshold for quality
+  if (estimatedSizeKB < 150) { // Raised from 50KB to 150KB for higher quality
+    console.log('📊 Cached image too small for high quality (size:', estimatedSizeKB.toFixed(1), 'KB) - REJECTED');
+    return false;
+  }
+  
+  // STRICT AGE REQUIREMENT - Prefer very fresh images only
+  const age = Date.now() - cacheData.timestamp;
+  const ageMinutes = age / (60 * 1000);
+  
+  if (ageMinutes > 15) { // Reduced from 30 to 15 minutes for freshness
+    console.log('📊 Cached image too old (', ageMinutes.toFixed(1), 'minutes) - REJECTED');
+    return false;
+  }
+  
+  console.log('✅ Cached image meets HIGH QUALITY standards (', estimatedSizeKB.toFixed(1), 'KB,', ageMinutes.toFixed(1), 'min old)');
+  return true;
+}
 
 /**
  * Save background to cache with timestamp and image data
@@ -207,6 +239,39 @@ async function downloadCodicepuntoPhoto() {
 }
 
 /**
+ * Apply background directly without fade effect (for first load)
+ */
+async function applyBackgroundDirect(bgElement, imgUrl) {
+  return new Promise((resolve, reject) => {
+    // Preload image to ensure it's ready
+    const preloadImg = new Image();
+    
+    preloadImg.onload = () => {
+      console.log('✅ First image loaded, applying directly (no fade)');
+      
+      // Apply directly without any transition
+      bgElement.style.setProperty('background-image', `url("${imgUrl}")`, 'important');
+      bgElement.style.setProperty('background-size', 'cover', 'important');
+      bgElement.style.setProperty('background-position', 'center', 'important');
+      bgElement.style.setProperty('background-repeat', 'no-repeat', 'important');
+      bgElement.style.opacity = '1';
+      
+      console.log('✅ First background applied instantly');
+      resolve();
+    };
+    
+    preloadImg.onerror = () => {
+      console.error('❌ Failed to load first image');
+      reject(new Error('Failed to load image'));
+    };
+    
+    // Start preloading
+    console.log('🔄 Loading first image...');
+    preloadImg.src = imgUrl;
+  });
+}
+
+/**
  * Preload image and apply background with crossfade effect
  */
 async function applyBackgroundWithFade(bgElement, imgUrl) {
@@ -280,15 +345,23 @@ async function applyBackgroundWithFade(bgElement, imgUrl) {
  * Set background image using codicepunto.it or Picsum as fallback
  */
 async function setBackground() {
+  const loadingIndicator = document.getElementById("bg-loading-indicator");
+  
   try {
     const bgElement = document.getElementById("bg");
     const photoInfoElement = document.getElementById("photo-info");
+    
     if (!bgElement) {
       console.error('Background element not found!');
       return;
     }
 
-    // Check cache first
+    // Show loading indicator
+    if (loadingIndicator) {
+      loadingIndicator.style.display = 'block';
+    }
+
+    // Check cache first, but ONLY use high-quality cached images
     const cachedBackground = await loadBackgroundFromCache();
     if (cachedBackground) {
       if (cachedBackground.cacheExpired && cachedBackground.loadNewImage) {
@@ -297,24 +370,60 @@ async function setBackground() {
       } else if (cachedBackground.reloadFailed) {
         console.log('⚠️ Cache valid but reload failed - keeping current background');
         // Don't change the background, just wait for cache to expire naturally
-        return;
-      } else {
-        console.log('📦 Using cached background');
-        await applyBackgroundWithFade(bgElement, cachedBackground.imgUrl);
-        
-        if (photoInfoElement && cachedBackground.photoData) {
-          const photoTextElement = document.getElementById("photo-text");
-          if (photoTextElement) {
-            localStorage.setItem('currentPhotoData', JSON.stringify(cachedBackground.photoData));
-            if (window.updatePhotoInfo) {
-              window.updatePhotoInfo();
-            }
-            photoInfoElement.style.display = 'block';
-          }
-        } else if (photoInfoElement) {
-          photoInfoElement.style.display = 'none';
+        if (loadingIndicator) {
+          loadingIndicator.style.display = 'none';
         }
         return;
+      } else {
+        console.log('📦 Found cached background - checking quality...');
+        
+        // Get cached data to check quality - STRICT quality check
+        const cached = localStorage.getItem('cachedBackground');
+        let isHighQuality = false;
+        
+        if (cached) {
+          const cacheData = JSON.parse(cached);
+          isHighQuality = isCachedImageGoodQuality(cacheData);
+        }
+        
+        // ONLY use cache if it's genuinely high quality
+        if (isHighQuality && cachedBackground.imgUrl) {
+          console.log('✅ Applying HIGH QUALITY cached background');
+          
+          // Check if this is first load (background is empty)
+          const currentBg = bgElement.style.backgroundImage;
+          const isFirstLoad = !currentBg || currentBg === '' || currentBg === 'none';
+          
+          if (isFirstLoad) {
+            // First load - apply directly without fade
+            await applyBackgroundDirect(bgElement, cachedBackground.imgUrl);
+          } else {
+            // Subsequent load - use fade transition
+            await applyBackgroundWithFade(bgElement, cachedBackground.imgUrl);
+          }
+          
+          if (photoInfoElement && cachedBackground.photoData) {
+            const photoTextElement = document.getElementById("photo-text");
+            if (photoTextElement) {
+              localStorage.setItem('currentPhotoData', JSON.stringify(cachedBackground.photoData));
+              if (window.updatePhotoInfo) {
+                window.updatePhotoInfo();
+              }
+              photoInfoElement.style.display = 'block';
+            }
+          } else if (photoInfoElement) {
+            photoInfoElement.style.display = 'none';
+          }
+          
+          // Hide loading indicator since we applied good cached content
+          if (loadingIndicator) {
+            loadingIndicator.style.display = 'none';
+          }
+          return;
+        } else {
+          console.log('� Cached image NOT high quality enough - loading fresh image...');
+          // Continue to load new fresh image below
+        }
       }
     }
 
@@ -343,8 +452,19 @@ async function setBackground() {
       }
     }
 
-    // Apply background with fade effect
-    await applyBackgroundWithFade(bgElement, imgUrl);
+    // Check if this is first load (background is empty) before applying
+    const currentBg = bgElement.style.backgroundImage;
+    const isFirstLoad = !currentBg || currentBg === '' || currentBg === 'none';
+    
+    if (isFirstLoad) {
+      // First load - apply directly without fade
+      console.log('🚀 First background load - applying instantly without fade');
+      await applyBackgroundDirect(bgElement, imgUrl);
+    } else {
+      // Subsequent load - use fade transition
+      console.log('🔄 Subsequent background load - applying with fade transition');
+      await applyBackgroundWithFade(bgElement, imgUrl);
+    }
 
     // Save to cache
     await saveBackgroundToCache(imgUrl, photoData, photoId, source);
@@ -368,8 +488,19 @@ async function setBackground() {
     } else if (photoInfoElement) {
       photoInfoElement.style.display = 'none';
     }
+    
+    // Hide loading indicator
+    if (loadingIndicator) {
+      loadingIndicator.style.display = 'none';
+    }
+    
   } catch (error) {
     console.error('Error loading background:', error);
+    
+    // Hide loading indicator even on error
+    if (loadingIndicator) {
+      loadingIndicator.style.display = 'none';
+    }
   }
 }
 

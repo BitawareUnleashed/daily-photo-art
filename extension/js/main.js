@@ -12,7 +12,20 @@ let isCleanView = false;
 async function initializeApp() {
   console.log('DOM loaded');
   
-  // Set up all event listeners
+  // FASE 1: Carica immediatamente l'interfaccia utente
+  await initializeUI();
+  
+  // FASE 2: Carica il background in modo asincrono senza bloccare
+  initializeBackgroundAsync();
+}
+
+/**
+ * Initialize UI components immediately without waiting for background
+ */
+async function initializeUI() {
+  console.log('🚀 Initializing UI components...');
+  
+  // Set up all event listeners first
   setupWelcomeEventListeners();
   setupCleanViewEventListeners();
   setupTestCrossfadeEventListeners();
@@ -22,23 +35,41 @@ async function initializeApp() {
   setupQuoteEventListeners();
   setupKeyboardEventListeners();
   
-  // Initialize core components
-  await setBackground();
-  
-  // Start automatic cache expiration checking
-  if (window.startCacheExpirationChecker) {
-    window.startCacheExpirationChecker();
-  }
-  
+  // Initialize clock immediately
   tickClock();
   setInterval(tickClock, 1000);
   
-  // Wait for all modules to load before calling greeting
+  // Start greeting immediately
   setTimeout(() => {
     if (window.ClockUtils && window.ClockUtils.greeting) {
       window.ClockUtils.greeting();
     }
-  }, 150); // Slightly longer delay to ensure all modules are ready
+  }, 50); // Shorter delay since UI is ready
+  
+  console.log('✅ UI components initialized');
+}
+
+/**
+ * Initialize background asynchronously without blocking UI
+ */
+async function initializeBackgroundAsync() {
+  console.log('🖼️ Loading background asynchronously...');
+  
+  try {
+    // DO NOT set default background - wait for quality image only
+    // Load actual background without blocking - this will check cache quality
+    await setBackground();
+    
+    // Start cache expiration checking after background is loaded
+    if (window.startCacheExpirationChecker) {
+      window.startCacheExpirationChecker();
+    }
+    
+    console.log('✅ Background loaded successfully');
+  } catch (error) {
+    console.error('❌ Error loading background:', error);
+    // Keep blank if loading fails - no default fallback
+  }
 }
 
 /**
