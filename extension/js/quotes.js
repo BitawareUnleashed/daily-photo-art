@@ -1,6 +1,47 @@
 // Quote management and translation functionality
 let currentQuote = null;
 
+// Cache configuration
+const CACHE_DURATION = 15 * 60 * 1000; // 15 minutes in milliseconds
+
+/**
+ * Save quote to cache with timestamp
+ */
+function saveQuoteToCache(quote) {
+  const cacheData = {
+    quote: quote,
+    timestamp: Date.now()
+  };
+  localStorage.setItem('cachedQuote', JSON.stringify(cacheData));
+  console.log('💾 Quote saved to cache:', quote);
+}
+
+/**
+ * Load quote from cache if still valid
+ */
+function loadQuoteFromCache() {
+  try {
+    const cached = localStorage.getItem('cachedQuote');
+    if (!cached) return null;
+    
+    const cacheData = JSON.parse(cached);
+    const age = Date.now() - cacheData.timestamp;
+    
+    if (age < CACHE_DURATION) {
+      console.log('📦 Quote loaded from cache (age:', Math.round(age / 1000), 'seconds)');
+      return cacheData.quote;
+    } else {
+      console.log('⏰ Cached quote expired (age:', Math.round(age / 1000), 'seconds)');
+      localStorage.removeItem('cachedQuote');
+      return null;
+    }
+  } catch (error) {
+    console.error('❌ Error loading quote from cache:', error);
+    localStorage.removeItem('cachedQuote');
+    return null;
+  }
+}
+
 async function translateText(text, targetLang = 'it') {
   try {
     if (targetLang === 'en') {
@@ -26,6 +67,15 @@ async function loadQuote() {
   console.log('📝 currentQuote state:', currentQuote);
   const selectedLang = document.getElementById('quote-language')?.value || 'it';
   console.log('Selected language:', selectedLang);
+  
+  // Check cache first if we don't have a current quote
+  if (!currentQuote) {
+    const cachedQuote = loadQuoteFromCache();
+    if (cachedQuote) {
+      currentQuote = cachedQuote;
+      console.log('📦 Using cached quote:', currentQuote);
+    }
+  }
   
   // If we already have a quote and are just changing language, translate it
   if (currentQuote) {
@@ -113,6 +163,9 @@ async function getNewQuote() {
       currentQuote = quote;
       console.log('📝 Selected quote:', quote);
       
+      // Save to cache
+      saveQuoteToCache(quote);
+      
       const translatedQuote = await translateText(quote.text, selectedLang);
       console.log('📝 Translated quote:', translatedQuote);
       
@@ -151,6 +204,24 @@ async function getNewQuote() {
 }
 
 /**
+ * Get remaining cache time in minutes
+ */
+function getCacheRemainingTime() {
+  try {
+    const cached = localStorage.getItem('cachedQuote');
+    if (!cached) return 0;
+    
+    const cacheData = JSON.parse(cached);
+    const age = Date.now() - cacheData.timestamp;
+    const remaining = CACHE_DURATION - age;
+    
+    return Math.max(0, Math.round(remaining / (60 * 1000))); // Return minutes
+  } catch (error) {
+    return 0;
+  }
+}
+
+/**
  * Update the tooltip of the original quote button with current translation
  */
 function updateOriginalQuoteTooltip() {
@@ -169,6 +240,7 @@ if (typeof window !== 'undefined') {
     loadQuote, 
     getNewQuote,
     getCurrentQuote: () => currentQuote,
-    updateOriginalQuoteTooltip
+    updateOriginalQuoteTooltip,
+    getCacheRemainingTime
   };
 }

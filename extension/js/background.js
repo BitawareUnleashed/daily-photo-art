@@ -3,6 +3,50 @@
  * Handles background image loading from multiple sources
  */
 
+// Cache configuration
+const BACKGROUND_CACHE_DURATION = 5 * 60 * 1000; // 15 minutes in milliseconds
+
+/**
+ * Save background to cache with timestamp
+ */
+function saveBackgroundToCache(imgUrl, photoData, photoId, source) {
+  const cacheData = {
+    imgUrl: imgUrl,
+    photoData: photoData,
+    photoId: photoId,
+    source: source,
+    timestamp: Date.now()
+  };
+  localStorage.setItem('cachedBackground', JSON.stringify(cacheData));
+  console.log('💾 Background saved to cache:', { photoId, source });
+}
+
+/**
+ * Load background from cache if still valid
+ */
+function loadBackgroundFromCache() {
+  try {
+    const cached = localStorage.getItem('cachedBackground');
+    if (!cached) return null;
+    
+    const cacheData = JSON.parse(cached);
+    const age = Date.now() - cacheData.timestamp;
+    
+    if (age < BACKGROUND_CACHE_DURATION) {
+      console.log('📦 Background loaded from cache (age:', Math.round(age / 1000), 'seconds)');
+      return cacheData;
+    } else {
+      console.log('⏰ Cached background expired (age:', Math.round(age / 1000), 'seconds)');
+      localStorage.removeItem('cachedBackground');
+      return null;
+    }
+  } catch (error) {
+    console.error('❌ Error loading background from cache:', error);
+    localStorage.removeItem('cachedBackground');
+    return null;
+  }
+}
+
 /**
  * Download a photo and related JSON from codicepunto.it/photos/DB
  * @returns {Object|false} Object with imgUrl, photoData, photoId or false if failed
@@ -46,6 +90,32 @@ async function setBackground() {
       return;
     }
 
+    // Check cache first
+    const cachedBackground = loadBackgroundFromCache();
+    if (cachedBackground) {
+      console.log('📦 Using cached background');
+      bgElement.style.setProperty('background-image', `url("${cachedBackground.imgUrl}")`, 'important');
+      bgElement.style.setProperty('background-size', 'cover', 'important');
+      bgElement.style.setProperty('background-position', 'center', 'important');
+      bgElement.style.setProperty('background-repeat', 'no-repeat', 'important');
+      
+      if (photoInfoElement && cachedBackground.photoData) {
+        const photoTextElement = document.getElementById("photo-text");
+        if (photoTextElement) {
+          localStorage.setItem('currentPhotoData', JSON.stringify(cachedBackground.photoData));
+          if (window.updatePhotoInfo) {
+            window.updatePhotoInfo();
+          }
+          photoInfoElement.style.display = 'block';
+        }
+      } else if (photoInfoElement) {
+        photoInfoElement.style.display = 'none';
+      }
+      return;
+    }
+
+    console.log('🔄 Loading new background...');
+    
     // Try codicepunto first, then fallback to Picsum
     let imgUrl, photoData, photoId, source;
     
@@ -74,6 +144,9 @@ async function setBackground() {
     bgElement.style.setProperty('background-size', 'cover', 'important');
     bgElement.style.setProperty('background-position', 'center', 'important');
     bgElement.style.setProperty('background-repeat', 'no-repeat', 'important');
+
+    // Save to cache
+    saveBackgroundToCache(imgUrl, photoData, photoId, source);
 
     // Show photo info
     if (photoData && photoInfoElement) {
