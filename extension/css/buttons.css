@@ -112,6 +112,35 @@
   border-color: rgba(255, 255, 255, 0.6);
 }
 
+/* Test crossfade button */
+#test-crossfade-btn {
+  position: fixed;
+  top: 104px;
+  left: 24px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  padding: 0;
+  z-index: 100;
+}
+
+#test-crossfade-btn:hover {
+  background: rgba(255, 255, 255, 0.4);
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
 /* Language selector */
 #quote-language {
   position: fixed;

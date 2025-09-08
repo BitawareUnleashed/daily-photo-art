@@ -15,6 +15,7 @@ async function initializeApp() {
   // Set up all event listeners
   setupWelcomeEventListeners();
   setupCleanViewEventListeners();
+  setupTestCrossfadeEventListeners();
   setupSettingsEventListeners();
   setupTodoEventListeners();
   setupWeatherEventListeners();
@@ -23,6 +24,12 @@ async function initializeApp() {
   
   // Initialize core components
   await setBackground();
+  
+  // Start automatic cache expiration checking
+  if (window.startCacheExpirationChecker) {
+    window.startCacheExpirationChecker();
+  }
+  
   tickClock();
   setInterval(tickClock, 1000);
   
@@ -83,6 +90,43 @@ function setupCleanViewEventListeners() {
         clearBtn.textContent = '👁️';
         isCleanView = true;
         updateCleanButton(isCleanView);
+      }
+    });
+  }
+}
+
+/**
+ * Set up test crossfade button functionality
+ */
+function setupTestCrossfadeEventListeners() {
+  const testCrossfadeBtn = document.getElementById('test-crossfade-btn');
+  if (testCrossfadeBtn) {
+    testCrossfadeBtn.addEventListener('click', async function() {
+      console.log('🎨 Test crossfade button clicked');
+      
+      // Disable button temporarily to prevent spam
+      testCrossfadeBtn.disabled = true;
+      testCrossfadeBtn.style.opacity = '0.5';
+      
+      try {
+        // Force load a new background (bypass cache)
+        console.log('🔄 Loading new background for test...');
+        
+        // Temporarily clear cache to force new image
+        localStorage.removeItem('cachedBackground');
+        
+        // Load new background
+        await setBackground();
+        
+        console.log('✅ Test crossfade completed');
+      } catch (error) {
+        console.error('❌ Error during test crossfade:', error);
+      } finally {
+        // Re-enable button after delay
+        setTimeout(() => {
+          testCrossfadeBtn.disabled = false;
+          testCrossfadeBtn.style.opacity = '1';
+        }, 1000);
       }
     });
   }
@@ -175,6 +219,12 @@ function setupSettingsEventListeners() {
         // Save cache duration
         await save('cacheDuration', cacheDuration);
         console.log(`Cache duration set to: ${cacheDuration} hours`);
+        
+        // Restart cache expiration timer with new duration
+        if (window.startCacheExpirationChecker) {
+          console.log('🔄 Restarting cache timer with new duration');
+          window.startCacheExpirationChecker();
+        }
 
         closePopoverFn();
       });

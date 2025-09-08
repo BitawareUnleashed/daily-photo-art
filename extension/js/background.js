@@ -159,9 +159,14 @@ async function loadBackgroundFromCache() {
         source: cacheData.source
       };
     } else {
-      console.log('⏰ Cache expired, removing...');
+      console.log('⏰ Cache expired, loading new image automatically...');
       localStorage.removeItem('cachedBackground');
-      return null;
+      
+      // Return special object indicating cache expired and new image should be loaded
+      return { 
+        cacheExpired: true,
+        loadNewImage: true
+      };
     }
   } catch (error) {
     console.error('❌ Error loading background from cache:', error);
@@ -202,6 +207,76 @@ async function downloadCodicepuntoPhoto() {
 }
 
 /**
+ * Preload image and apply background with crossfade effect
+ */
+async function applyBackgroundWithFade(bgElement, imgUrl) {
+  return new Promise((resolve, reject) => {
+    // First, preload the new image to ensure it's ready
+    const preloadImg = new Image();
+    
+    preloadImg.onload = () => {
+      console.log('✅ New image preloaded, starting crossfade');
+      
+      // Create a temporary overlay element for the new image
+      const overlay = document.createElement('div');
+      overlay.style.position = 'fixed';
+      overlay.style.top = '0';
+      overlay.style.left = '0';
+      overlay.style.width = '100%';
+      overlay.style.height = '100%';
+      overlay.style.zIndex = '-1';
+      overlay.style.backgroundImage = `url("${imgUrl}")`;
+      overlay.style.backgroundSize = 'cover';
+      overlay.style.backgroundPosition = 'center';
+      overlay.style.backgroundRepeat = 'no-repeat';
+      overlay.style.opacity = '0';
+      overlay.style.transition = 'opacity 3000ms ease-in-out';
+      
+      // Insert the overlay right after the current background
+      bgElement.parentNode.insertBefore(overlay, bgElement.nextSibling);
+      
+      // Small delay to ensure DOM is updated
+      setTimeout(() => {
+        // Start crossfade: new image fades in, old image fades out
+        overlay.style.opacity = '1';
+        bgElement.style.transition = 'opacity 3000ms ease-in-out';
+        bgElement.style.opacity = '0';
+        
+        setTimeout(() => {
+          // Update the main background element with new image
+          bgElement.style.transition = '';
+          bgElement.style.setProperty('background-image', `url("${imgUrl}")`, 'important');
+          bgElement.style.setProperty('background-size', 'cover', 'important');
+          bgElement.style.setProperty('background-position', 'center', 'important');
+          bgElement.style.setProperty('background-repeat', 'no-repeat', 'important');
+          bgElement.style.opacity = '1';
+          
+          // Remove the temporary overlay
+          overlay.remove();
+          
+          console.log('✅ Crossfade completed');
+          resolve();
+        }, 3000);
+      }, 50);
+    };
+    
+    preloadImg.onerror = () => {
+      console.error('❌ Failed to preload image for crossfade');
+      // Fallback to direct application without fade
+      bgElement.style.setProperty('background-image', `url("${imgUrl}")`, 'important');
+      bgElement.style.setProperty('background-size', 'cover', 'important');
+      bgElement.style.setProperty('background-position', 'center', 'important');
+      bgElement.style.setProperty('background-repeat', 'no-repeat', 'important');
+      resolve();
+    };
+    
+    // Start preloading
+    console.log('🔄 Preloading new image for crossfade...');
+    preloadImg.src = imgUrl;
+  });
+}
+
+/**
  * Set background image using codicepunto.it or Picsum as fallback
  */
 async function setBackground() {
@@ -216,31 +291,31 @@ async function setBackground() {
     // Check cache first
     const cachedBackground = await loadBackgroundFromCache();
     if (cachedBackground) {
-      if (cachedBackground.reloadFailed) {
+      if (cachedBackground.cacheExpired && cachedBackground.loadNewImage) {
+        console.log('⏰ Cache expired - loading new image automatically...');
+        // Continue to load new image below (don't return here)
+      } else if (cachedBackground.reloadFailed) {
         console.log('⚠️ Cache valid but reload failed - keeping current background');
         // Don't change the background, just wait for cache to expire naturally
         return;
-      }
-      
-      console.log('📦 Using cached background');
-      bgElement.style.setProperty('background-image', `url("${cachedBackground.imgUrl}")`, 'important');
-      bgElement.style.setProperty('background-size', 'cover', 'important');
-      bgElement.style.setProperty('background-position', 'center', 'important');
-      bgElement.style.setProperty('background-repeat', 'no-repeat', 'important');
-      
-      if (photoInfoElement && cachedBackground.photoData) {
-        const photoTextElement = document.getElementById("photo-text");
-        if (photoTextElement) {
-          localStorage.setItem('currentPhotoData', JSON.stringify(cachedBackground.photoData));
-          if (window.updatePhotoInfo) {
-            window.updatePhotoInfo();
+      } else {
+        console.log('📦 Using cached background');
+        await applyBackgroundWithFade(bgElement, cachedBackground.imgUrl);
+        
+        if (photoInfoElement && cachedBackground.photoData) {
+          const photoTextElement = document.getElementById("photo-text");
+          if (photoTextElement) {
+            localStorage.setItem('currentPhotoData', JSON.stringify(cachedBackground.photoData));
+            if (window.updatePhotoInfo) {
+              window.updatePhotoInfo();
+            }
+            photoInfoElement.style.display = 'block';
           }
-          photoInfoElement.style.display = 'block';
+        } else if (photoInfoElement) {
+          photoInfoElement.style.display = 'none';
         }
-      } else if (photoInfoElement) {
-        photoInfoElement.style.display = 'none';
+        return;
       }
-      return;
     }
 
     console.log('🔄 Loading new background...');
@@ -268,11 +343,8 @@ async function setBackground() {
       }
     }
 
-    // Apply background
-    bgElement.style.setProperty('background-image', `url("${imgUrl}")`, 'important');
-    bgElement.style.setProperty('background-size', 'cover', 'important');
-    bgElement.style.setProperty('background-position', 'center', 'important');
-    bgElement.style.setProperty('background-repeat', 'no-repeat', 'important');
+    // Apply background with fade effect
+    await applyBackgroundWithFade(bgElement, imgUrl);
 
     // Save to cache
     await saveBackgroundToCache(imgUrl, photoData, photoId, source);
@@ -319,9 +391,64 @@ function updatePhotoInfo() {
   }
 }
 
+// Global timer ID for cache expiration
+let cacheExpirationTimer = null;
+
+/**
+ * Start automatic cache expiration checking with precise timing
+ */
+async function startCacheExpirationChecker() {
+  try {
+    // Clear any existing timer
+    if (cacheExpirationTimer) {
+      clearTimeout(cacheExpirationTimer);
+      cacheExpirationTimer = null;
+      console.log('🔄 Cleared previous cache timer');
+    }
+    
+    const cached = localStorage.getItem('cachedBackground');
+    if (!cached) {
+      console.log('🕒 No cache found, automatic checker not needed');
+      return;
+    }
+    
+    const cacheData = JSON.parse(cached);
+    const age = Date.now() - cacheData.timestamp;
+    
+    // Get cache duration from settings
+    const cacheDurationHours = (typeof getCacheDuration === 'function') ? 
+      await getCacheDuration() : 24;
+    const cacheDuration = cacheDurationHours * 60 * 60 * 1000;
+    
+    const timeUntilExpiration = cacheDuration - age;
+    
+    if (timeUntilExpiration <= 0) {
+      console.log('⏰ Cache already expired - loading new image immediately');
+      await setBackground();
+      return;
+    }
+    
+    console.log(`🕒 Setting precise timer for cache expiration in ${Math.round(timeUntilExpiration / 1000)} seconds (${Math.round(timeUntilExpiration / 60000)} minutes)`);
+    
+    // Set timer for exact expiration time
+    cacheExpirationTimer = setTimeout(async () => {
+      console.log('⏰ Cache expired by timer - loading new image automatically');
+      cacheExpirationTimer = null;
+      await setBackground();
+      
+      // After loading new image, set up next timer
+      startCacheExpirationChecker();
+    }, timeUntilExpiration);
+    
+  } catch (error) {
+    console.error('❌ Error setting up cache expiration timer:', error);
+  }
+}
+
 // Export functions for use by other modules
 if (typeof window !== 'undefined') {
   window.downloadCodicepuntoPhoto = downloadCodicepuntoPhoto;
   window.setBackground = setBackground;
   window.updatePhotoInfo = updatePhotoInfo;
+  window.startCacheExpirationChecker = startCacheExpirationChecker;
 }
