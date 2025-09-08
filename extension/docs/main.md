@@ -3,29 +3,61 @@
 ## Overview
 The `main.js` module serves as the central orchestrator for the Daily Photo Art extension. It handles application initialization, event listeners setup, user settings management, and coordinates between all other modules.
 
+## Recent Updates (September 2025)
+- **Optimized loading sequence** - Separated UI initialization from background loading for faster startup
+- **Eliminated default background** - No more placeholder images during loading
+- **Instant first load** - Background images apply without fade effect on first load
+- **Non-blocking initialization** - UI components load immediately while background loads asynchronously
+
 ## Key Features
-- **Application initialization** and lifecycle management
+- **Application initialization** and lifecycle management with optimized loading
 - **Event listener orchestration** for all UI components
 - **Settings management** with cache duration configuration
 - **Clean view toggle** functionality
 - **Cross-module coordination** and integration
+- **Asynchronous background loading** for improved performance
 
 ## Functions
 
 ### `initializeApp()`
 **Purpose**: Main initialization function that bootstraps the entire application when DOM is loaded.
 
-**Initialization Sequence**:
-1. Sets up all event listeners for UI components
-2. Loads background image system
-3. Starts automatic cache expiration checker
-4. Initializes clock with 1-second intervals
-5. Triggers greeting system after module loading
+**Enhanced Loading Strategy (Sept 2025)**:
+```javascript
+async function initializeApp() {
+  await initializeUI();           // Load UI immediately
+  initializeBackgroundAsync();    // Load background without blocking
+}
+```
 
-**Module Dependencies**:
-- Background system for image management
-- Clock for time display
-- Cache expiration checker for automatic updates
+**Optimization Benefits**:
+- UI components (clock, greeting, controls) load instantly
+- Background loading doesn't block user interaction
+- Eliminated placeholder/default background images
+- First image loads without fade effect for immediate display
+
+### `initializeUI()`
+**Purpose**: Immediately loads all user interface components without waiting for background.
+
+**Immediate Initialization**:
+1. Sets up all event listeners for UI components instantly
+2. Starts clock with 1-second intervals immediately
+3. Triggers greeting system with minimal delay (50ms)
+4. Enables all controls and interactions without waiting
+
+**Performance Impact**: UI becomes interactive within milliseconds of DOM ready.
+
+### `initializeBackgroundAsync()`
+**Purpose**: Loads background images asynchronously without blocking UI.
+
+**Background Loading Strategy**:
+1. No default/placeholder image loading
+2. Waits for high-quality cached or fresh images only
+3. First image applies instantly (no fade effect)
+4. Subsequent images use fade transitions
+5. Starts cache expiration checker after completion
+
+**Quality Control**: Only displays images that meet quality standards (150KB+, <15min age).
 
 ### `setupWelcomeEventListeners()`
 **Purpose**: Manages the welcome screen functionality for new users.

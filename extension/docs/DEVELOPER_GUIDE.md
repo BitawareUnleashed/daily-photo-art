@@ -4,6 +4,23 @@
 
 Daily Photo Art è un'estensione Chrome che trasforma ogni nuova scheda in un'esperienza visiva personalizzata con immagini artistiche, meteo locale, gestione todo e citazioni motivazionali. L'architettura è modulare e basata su un design system glassmorphism per un'interfaccia moderna e accessibile.
 
+## 🚀 Aggiornamenti Recenti (Settembre 2025)
+
+### Ottimizzazioni Performance
+- **Loading Asincrono**: UI carica immediatamente, background in parallelo
+- **Primo Caricamento Istantaneo**: Niente fade effect al primo load
+- **Eliminazione Default**: Niente più immagini placeholder di bassa qualità
+
+### Bug Fix Critici  
+- **Meteo "undefined"**: Risolto problema traduzioni incomplete nei fallback
+- **Cache Intelligente**: Solo immagini >150KB e <15min vengono usate dalla cache
+- **Feedback Utente**: Indicatori di caricamento per trasparenza
+
+### Miglioramenti UX
+- **Caricamento Non-Bloccante**: Interfaccia reattiva durante download immagini
+- **Controllo Qualità**: Prevenzione automatica immagini di bassa qualità
+- **Gestione Errori**: Fallback completi per tutti gli scenari di errore
+
 ## Indice della Documentazione
 
 ### 📁 Documentazione JavaScript

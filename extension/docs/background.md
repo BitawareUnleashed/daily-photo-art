@@ -1,14 +1,22 @@
 # Background.js Documentation
 
 ## Overview
-The `background.js` module is responsible for managing background images in the Daily Photo Art extension. It handles image downloading, caching, crossfade transitions, and automatic background updates based on configurable cache durations.
+The `background.js` module is responsible for managing background images in the Daily Photo Art extension. It handles image downloading, caching, crossfade transitions, automatic background updates, and intelligent loading strategies for optimal user experience.
+
+## Recent Updates (September 2025)
+- **Quality-based cache filtering** - Only high-quality cached images (150KB+, <15min) are used
+- **Instant first load** - New `applyBackgroundDirect()` function for immediate first image display
+- **Smart loading decisions** - Background selection based on current state and quality criteria
+- **Enhanced loading indicators** - Visual feedback during background loading process
+- **Eliminated default backgrounds** - No more placeholder images, wait for quality content only
 
 ## Key Features
 - **Multi-source image loading** (Codicepunto.it priority, Picsum fallback)
-- **Intelligent caching system** with base64 storage
-- **Smooth crossfade transitions** between images
+- **Intelligent caching system** with quality-based filtering
+- **Dual loading modes** (instant first load, fade for subsequent)
 - **Automatic cache expiration** with precise timing
-- **Offline support** through cached image data
+- **Quality control** with strict criteria for cached image usage
+- **Loading state management** with user feedback
 
 ## Functions
 
@@ -54,8 +62,30 @@ The `background.js` module is responsible for managing background images in the 
 
 **Returns**: `{ imgUrl, photoData, photoId }` or `false` on failure
 
+### `applyBackgroundDirect(bgElement, imgUrl)`
+**Purpose**: Applies background image instantly without fade effect - optimized for first load.
+
+**New Function (Sept 2025)**:
+```javascript
+// Used for first load - instant application
+await applyBackgroundDirect(bgElement, imgUrl);
+```
+
+**Process**:
+1. **Preload**: Ensures image is fully loaded
+2. **Direct Apply**: Sets background immediately without transitions
+3. **Instant Display**: No delay or fade effect
+4. **Performance**: Eliminates 3-second fade delay for first image
+
+**Use Case**: Called when background element is empty (first load)
+
 ### `applyBackgroundWithFade(bgElement, imgUrl)`
 **Purpose**: Applies new background image with smooth crossfade transition effect.
+
+**Enhanced Logic (Sept 2025)**:
+- **Smart Selection**: Automatically chosen for subsequent loads (when background exists)
+- **Transition Effect**: 3000ms smooth fade between images
+- **Professional Polish**: Used for image changes after initial load
 
 **Crossfade Process**:
 1. **Preload**: Loads new image completely before transition
@@ -71,13 +101,36 @@ The `background.js` module is responsible for managing background images in the 
 - Maintains proper z-index layering
 - Ensures DOM synchronization
 
-### `setBackground()`
-**Purpose**: Main background loading function that orchestrates the entire background management system.
+### `isCachedImageGoodQuality(cacheData)`
+**Purpose**: Evaluates cached image quality using strict criteria - prevents low-quality image usage.
 
-**Workflow**:
-1. **Cache Check**: Attempts to load from cache first
-2. **Source Priority**: Tries Codicepunto.it, falls back to Picsum
-3. **Image Application**: Uses crossfade for smooth transition
+**New Quality Control Function (Sept 2025)**:
+```javascript
+function isCachedImageGoodQuality(cacheData) {
+  // Strict quality criteria
+  const estimatedSizeKB = (cacheData.imageBase64.length * 3/4) / 1024;
+  const ageMinutes = (Date.now() - cacheData.timestamp) / (60 * 1000);
+  
+  return estimatedSizeKB >= 150 && ageMinutes <= 15;
+}
+```
+
+**Quality Criteria**:
+- **Size Threshold**: Minimum 150KB (raised from 50KB)
+- **Age Limit**: Maximum 15 minutes (reduced from 30 minutes)
+- **Strict Standards**: Both criteria must be met for approval
+
+**Impact**: Prevents "ugly" low-quality cached images from being displayed
+
+### `setBackground()`
+**Purpose**: Main background loading function with enhanced quality control and smart loading strategies.
+
+**Enhanced Workflow (Sept 2025)**:
+1. **Quality Check**: Evaluates cached images with strict criteria
+2. **Smart Loading**: Uses direct or fade application based on current state
+3. **Loading Feedback**: Shows/hides loading indicator appropriately
+4. **Source Priority**: Tries Codicepunto.it, falls back to Picsum
+5. **Cache Strategy**: Only caches and uses high-quality images
 4. **Cache Update**: Saves new image for future use
 5. **UI Update**: Updates photo information display
 

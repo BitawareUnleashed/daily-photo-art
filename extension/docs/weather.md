@@ -3,13 +3,20 @@
 ## Overview
 The `weather.js` module manages weather data fetching, display, and location services for the Daily Photo Art extension. It provides dual-city weather support with automatic geocoding and real-time weather information using the Open-Meteo API.
 
+## Recent Updates (September 2025)
+- **Fixed undefined translations bug** - All fallback objects now include complete translation keys (`humidity`, `wind`)
+- **Enhanced error resilience** - Improved fallback handling when translation system is unavailable
+- **Standardized fallback patterns** - Consistent translation fallbacks across all weather functions
+- **Robust error handling** - Complete Italian fallbacks prevent "undefined" display in weather information
+
 ## Key Features
 - **Dual city weather display** (primary and secondary locations)
 - **Automatic geocoding** for city name to coordinates conversion
 - **Real-time weather data** with comprehensive meteorological information
-- **Multi-language support** for weather descriptions
+- **Multi-language support** for weather descriptions with robust fallbacks
 - **Error handling** for network and API issues
 - **Responsive UI updates** with loading states
+- **Complete translation fallbacks** prevent undefined text display
 
 ## API Integration
 
@@ -58,23 +65,36 @@ const location = await getCoordinates("Milano")
 ### `loadWeatherForCity(cityName)`
 **Purpose**: Loads and displays weather information for the primary city location.
 
+**Enhanced Translation Handling (Sept 2025)**:
+```javascript
+const texts = window.currentTexts || { 
+  cityNotFound: "Città non trovata", 
+  humidity: "Umidità", 
+  wind: "Vento",
+  weatherNotAvailable: "Meteo non disponibile"
+};
+```
+
 **Process**:
 1. **Geocoding**: Converts city name to coordinates
 2. **Weather Fetch**: Retrieves current weather data
-3. **UI Update**: Updates primary weather display
-4. **Error Handling**: Shows appropriate error messages
+3. **UI Update**: Updates primary weather display with complete translation support
+4. **Error Handling**: Shows appropriate error messages with fallback translations
 
 **Parameters**:
 - `cityName` (string): Name of the city for weather display
 
 **UI Elements Updated**:
 - `#weather`: Primary weather display
-- Temperature, conditions, humidity, wind information
+- Temperature, conditions, humidity, wind information (no more "undefined" labels)
+
+**Bug Fix**: Previously showed "undefined" for humidity and wind labels when translation system was unavailable. Now includes complete fallback translations.
 
 **Error States**:
 - City not found message
 - Network error handling
 - API unavailability messaging
+- Translation system unavailable (complete Italian fallbacks)
 
 ### `loadSecondWeatherForCity(cityName)`
 **Purpose**: Loads and displays weather information for the secondary city location.
