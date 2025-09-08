@@ -21,6 +21,14 @@ const translations = {
     changeFirstCityTitle: "Cambia Prima Città",
     changeSecondCityTitle: "Cambia Seconda Città",
     yourNameLabel: "Il tuo nome",
+    cacheDurationLabel: "Durata cache contenuti",
+    cache2minutes: "2 minuti",
+    cache1hour: "1 ora",
+    cache6hours: "6 ore",
+    cache12hours: "12 ore",
+    cache24hours: "24 ore",
+    cache48hours: "48 ore",
+    cache72hours: "72 ore",
     cityWeatherLabel: "Città per il meteo",
     cityNameLabel: "Nome della città",
     saveButton: "Salva",
@@ -67,6 +75,14 @@ const translations = {
     changeFirstCityTitle: "Change First City",
     changeSecondCityTitle: "Change Second City", 
     yourNameLabel: "Your name",
+    cacheDurationLabel: "Cache duration",
+    cache2minutes: "2 minutes",
+    cache1hour: "1 hour",
+    cache6hours: "6 hours",
+    cache12hours: "12 hours",
+    cache24hours: "24 hours",
+    cache48hours: "48 hours",
+    cache72hours: "72 hours",
     cityWeatherLabel: "City for weather",
     cityNameLabel: "City name",
     saveButton: "Save",
@@ -113,6 +129,14 @@ const translations = {
     changeFirstCityTitle: "Changer Première Ville",
     changeSecondCityTitle: "Changer Deuxième Ville",
     yourNameLabel: "Votre nom",
+    cacheDurationLabel: "Durée du cache",
+    cache2minutes: "2 minutes",
+    cache1hour: "1 heure",
+    cache6hours: "6 heures",
+    cache12hours: "12 heures",
+    cache24hours: "24 heures",
+    cache48hours: "48 heures",
+    cache72hours: "72 heures",
     cityWeatherLabel: "Ville pour météo",
     cityNameLabel: "Nom de la ville",
     saveButton: "Sauvegarder",
@@ -159,6 +183,14 @@ const translations = {
     changeFirstCityTitle: "Erste Stadt Ändern",
     changeSecondCityTitle: "Zweite Stadt Ändern",
     yourNameLabel: "Dein Name",
+    cacheDurationLabel: "Cache-Dauer",
+    cache2minutes: "2 Minuten",
+    cache1hour: "1 Stunde",
+    cache6hours: "6 Stunden",
+    cache12hours: "12 Stunden",
+    cache24hours: "24 Stunden",
+    cache48hours: "48 Stunden",
+    cache72hours: "72 Stunden",
     cityWeatherLabel: "Stadt für Wetter",
     cityNameLabel: "Stadtname",
     saveButton: "Speichern", 
@@ -292,6 +324,15 @@ function translateInterface(lang) {
     if (categoryKey && texts[categoryKey]) {
       const emoji = label.textContent.substring(0, 2);
       label.textContent = `${emoji} ${texts[categoryKey]}`;
+    }
+  });
+  
+  // Update all elements with data-translate attribute
+  const translateElements = document.querySelectorAll('[data-translate]');
+  translateElements.forEach(element => {
+    const translateKey = element.getAttribute('data-translate');
+    if (translateKey && texts[translateKey] && !element.classList.contains('category-option')) {
+      element.textContent = texts[translateKey];
     }
   });
   

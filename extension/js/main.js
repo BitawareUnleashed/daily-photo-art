@@ -9,7 +9,7 @@ let isCleanView = false;
 /**
  * Initialize the application when DOM is loaded
  */
-function initializeApp() {
+async function initializeApp() {
   console.log('DOM loaded');
   
   // Set up all event listeners
@@ -22,7 +22,7 @@ function initializeApp() {
   setupKeyboardEventListeners();
   
   // Initialize core components
-  setBackground();
+  await setBackground();
   tickClock();
   setInterval(tickClock, 1000);
   
@@ -106,9 +106,32 @@ function setupSettingsEventListeners() {
       // Load saved values
       const savedName = await load('name');
       const savedCity = await load('weatherCfg');
+      const savedCacheDuration = await load('cacheDuration'); // Load from storage
       
       if (savedName && nameInput) nameInput.value = savedName;
       if (savedCity && savedCity.city && cityInput) cityInput.value = savedCity.city;
+      
+      // Set the correct cache duration radio button
+      const cacheDurationRadios = document.querySelectorAll('input[name="cache-duration"]');
+      let radioSelected = false;
+      
+      // Try to select the saved value first
+      if (savedCacheDuration !== null && savedCacheDuration !== undefined) {
+        cacheDurationRadios.forEach(radio => {
+          if (radio.value === String(savedCacheDuration)) {
+            radio.checked = true;
+            radioSelected = true;
+          } else {
+            radio.checked = false;
+          }
+        });
+      }
+      
+      // If no radio was selected (no saved value or saved value not found), select the first one
+      if (!radioSelected && cacheDurationRadios.length > 0) {
+        cacheDurationRadios[0].checked = true;
+        console.log(`No saved cache duration found, defaulting to first option: ${cacheDurationRadios[0].value}`);
+      }
       
       settingsPopover.style.display = 'flex';
     });
@@ -126,6 +149,10 @@ function setupSettingsEventListeners() {
       saveSettings.addEventListener('click', async function() {
         const name = nameInput ? nameInput.value.trim() : '';
         const city = cityInput ? cityInput.value.trim() : '';
+        
+        // Get selected cache duration
+        const selectedCacheDuration = document.querySelector('input[name="cache-duration"]:checked');
+        const cacheDuration = selectedCacheDuration ? parseFloat(selectedCacheDuration.value) : 24;
 
         if (name) {
           await save('name', name);
@@ -144,6 +171,10 @@ function setupSettingsEventListeners() {
         if (city) {
           loadWeatherForCity(city);
         }
+        
+        // Save cache duration
+        await save('cacheDuration', cacheDuration);
+        console.log(`Cache duration set to: ${cacheDuration} hours`);
 
         closePopoverFn();
       });
@@ -574,6 +605,20 @@ function handleEscapeKey() {
 }
 
 /**
+ * Get cache duration in hours from settings
+ * @returns {Promise<number>} Cache duration in hours
+ */
+async function getCacheDuration() {
+  try {
+    const cacheDuration = await load('cacheDuration');
+    return cacheDuration ? parseFloat(cacheDuration) : 24; // Default to 24 hours
+  } catch (error) {
+    console.error('Error getting cache duration:', error);
+    return 24; // Default fallback
+  }
+}
+
+/**
  * Update clean button state (placeholder for compatibility)
  */
 function updateCleanButton(isClean) {
@@ -590,4 +635,5 @@ if (typeof window !== 'undefined') {
   window.setupOriginalQuoteButton = setupOriginalQuoteButton;
   window.handleEscapeKey = handleEscapeKey;
   window.updateCleanButton = updateCleanButton;
+  window.getCacheDuration = getCacheDuration;
 }

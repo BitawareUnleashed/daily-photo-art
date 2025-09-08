@@ -10,33 +10,83 @@ const BACKGROUND_CACHE_DURATION = 5 * 60 * 1000; // 15 minutes in milliseconds
  * Save background to cache with timestamp
  */
 function saveBackgroundToCache(imgUrl, photoData, photoId, source) {
+  // For blob URLs, we need to save the actual image data
+  // For now, we'll just cache the metadata and reload the image when needed
   const cacheData = {
-    imgUrl: imgUrl,
     photoData: photoData,
     photoId: photoId,
     source: source,
     timestamp: Date.now()
   };
   localStorage.setItem('cachedBackground', JSON.stringify(cacheData));
-  console.log('💾 Background saved to cache:', { photoId, source });
+  console.log('💾 Background metadata saved to cache:', { photoId, source });
 }
 
 /**
  * Load background from cache if still valid
  */
-function loadBackgroundFromCache() {
+async function loadBackgroundFromCache() {
   try {
+    console.log('🔍 Checking localStorage for cached background...');
     const cached = localStorage.getItem('cachedBackground');
-    if (!cached) return null;
+    if (!cached) {
+      console.log('📦 No cached background found');
+      return null;
+    }
     
+    console.log('📦 Found cached background, parsing...');
     const cacheData = JSON.parse(cached);
     const age = Date.now() - cacheData.timestamp;
     
-    if (age < BACKGROUND_CACHE_DURATION) {
-      console.log('📦 Background loaded from cache (age:', Math.round(age / 1000), 'seconds)');
-      return cacheData;
+    // Get cache duration from settings
+    const cacheDurationHours = (typeof getCacheDuration === 'function') ? 
+      await getCacheDuration() : 24;
+    const cacheDuration = cacheDurationHours * 60 * 60 * 1000;
+    
+    console.log(`📦 Cache age: ${Math.round(age / 1000)} seconds`);
+    console.log(`📦 Cache duration: ${Math.round(cacheDuration / 1000)} seconds`);
+    console.log(`📦 Cache valid: ${age < cacheDuration}`);
+    
+    if (age < cacheDuration) {
+      console.log('✅ Cache is valid, reloading image...');
+      console.log('📦 Cached source:', cacheData.source);
+      console.log('📦 Cached photoId:', cacheData.photoId);
+      
+      // Reload the image from the original source
+      if ((cacheData.source === 'codicepunto.it' || cacheData.source === 'codicepunto') && cacheData.photoId) {
+        const jpgUrl = `https://raw.githubusercontent.com/bitawareunleashed/photo-storage/main/${cacheData.photoId}.JPG`;
+        try {
+          console.log(`🔄 Reloading cached image: ${jpgUrl}`);
+          const response = await fetch(jpgUrl);
+          if (response.ok) {
+            const blob = await response.blob();
+            const imgUrl = URL.createObjectURL(blob);
+            console.log('✅ Cached image reloaded successfully');
+            return { 
+              imgUrl: imgUrl, 
+              photoData: cacheData.photoData, 
+              photoId: cacheData.photoId,
+              source: cacheData.source 
+            };
+          } else {
+            console.error(`❌ Failed to reload cached image: ${response.status} ${response.statusText}`);
+          }
+        } catch (error) {
+          console.error('❌ Network error reloading cached image:', error);
+        }
+      }
+      
+      console.log('⚠️ Cache is valid but image reload failed - keeping cache for next time');
+      // Return a special object indicating cache is valid but reload failed
+      return { 
+        cacheValid: true, 
+        reloadFailed: true,
+        photoData: cacheData.photoData,
+        photoId: cacheData.photoId,
+        source: cacheData.source
+      };
     } else {
-      console.log('⏰ Cached background expired (age:', Math.round(age / 1000), 'seconds)');
+      console.log('⏰ Cache expired, removing...');
       localStorage.removeItem('cachedBackground');
       return null;
     }
@@ -91,8 +141,14 @@ async function setBackground() {
     }
 
     // Check cache first
-    const cachedBackground = loadBackgroundFromCache();
+    const cachedBackground = await loadBackgroundFromCache();
     if (cachedBackground) {
+      if (cachedBackground.reloadFailed) {
+        console.log('⚠️ Cache valid but reload failed - keeping current background');
+        // Don't change the background, just wait for cache to expire naturally
+        return;
+      }
+      
       console.log('📦 Using cached background');
       bgElement.style.setProperty('background-image', `url("${cachedBackground.imgUrl}")`, 'important');
       bgElement.style.setProperty('background-size', 'cover', 'important');

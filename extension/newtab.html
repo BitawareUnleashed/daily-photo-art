@@ -5,7 +5,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Artistic Photos - New Tab</title>
-  
+
   <!-- CSS Files -->
   <link rel="stylesheet" href="css/variables.css" />
   <link rel="stylesheet" href="css/layout.css" />
@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="css/weather.css" />
   <link rel="stylesheet" href="css/popover.css" />
   <link rel="stylesheet" href="css/animations.css" />
-  
+
   <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
 </head>
 
@@ -60,8 +60,46 @@
       </div>
       <div class="popover-body">
         <label>Il tuo nome</label>
-        <input id="name-input" placeholder="Es. Dario" />
-        
+        <input id="name-input" placeholder="Es. John" />
+
+        <div class="cache-duration-label">
+          <label data-translate="cacheDurationLabel">Durata cache contenuti</label>
+        </div>
+
+        <div class="cache-duration-options">
+          <label class="radio-option">
+            <input type="radio" name="cache-duration" value="0.033" />
+            <span data-translate="cache2minutes">2 minuti</span>
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="cache-duration" value="1" />
+            <span data-translate="cache1hour">1 ora</span>
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="cache-duration" value="6" />
+            <span data-translate="cache6hours">6 ore</span>
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="cache-duration" value="12" />
+            <span data-translate="cache12hours">12 ore</span>
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="cache-duration" value="24" checked />
+            <span data-translate="cache24hours">24 ore</span>
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="cache-duration" value="48" />
+            <span data-translate="cache48hours">48 ore</span>
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="cache-duration" value="72" />
+            <span data-translate="cache72hours">72 ore</span>
+          </label>
+        </div>
+
+
+
+
         <p><button id="save-settings">Salva</button></p>
       </div>
     </div>
@@ -148,7 +186,8 @@
           <label for="category-hobby" class="category-option" data-translate="categoryHobby">🎨 Hobby</label>
 
           <input type="radio" id="category-burocrazia" name="todo-category" value="Burocrazia">
-          <label for="category-burocrazia" class="category-option" data-translate="categoryBureaucracy">📋 Burocrazia</label>
+          <label for="category-burocrazia" class="category-option" data-translate="categoryBureaucracy">📋
+            Burocrazia</label>
 
           <input type="radio" id="category-pagamenti" name="todo-category" value="Pagamenti">
           <label for="category-pagamenti" class="category-option" data-translate="categoryPayments">💳 Pagamenti</label>
