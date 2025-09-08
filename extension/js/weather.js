@@ -325,22 +325,22 @@ function getWeatherDescription(code) {
  */
 function getWeatherIcon(code) {
   const weatherIcons = {
-    0: "☀️",      // Sereno
-    1: "🌤️",      // Prevalentemente sereno
-    2: "⛅",      // Parzialmente nuvoloso
-    3: "☁️",      // Coperto
-    45: "🌫️",     // Nebbia
-    48: "🌫️",     // Nebbia con brina
-    51: "🌦️",     // Pioggerella leggera
-    53: "🌦️",     // Pioggerella moderata
-    55: "🌧️",     // Pioggerella intensa
-    61: "🌧️",     // Pioggia leggera
-    63: "🌧️",     // Pioggia moderata
-    65: "⛈️",     // Pioggia intensa
-    71: "🌨️",     // Neve leggera
-    73: "❄️",     // Neve moderata
-    75: "❄️",     // Neve intensa
-    95: "⛈️"      // Temporale
+    0: "☀️",      // Clear
+    1: "🌤️",      // Mostly clear
+    2: "⛅",      // Partly cloudy
+    3: "☁️",      // Overcast
+    45: "🌫️",     // Fog
+    48: "🌫️",     // Fog with rime
+    51: "🌦️",     // Light drizzle
+    53: "🌦️",     // Moderate drizzle
+    55: "🌧️",     // Heavy drizzle
+    61: "🌧️",     // Light rain
+    63: "🌧️",     // Moderate rain
+    65: "⛈️",     // Heavy rain
+    71: "🌨️",     // Light snow
+    73: "❄️",     // Moderate snow
+    75: "❄️",     // Heavy snow
+    95: "⛈️"      // Thunderstorm
   };
   return weatherIcons[code] || "🌡️";
 }

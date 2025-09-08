@@ -36,7 +36,7 @@
     display: none;
     z-index: 1000;
   ">
-    🖼️ Caricamento immagine...
+    🖼️ Loading image...
   </div>
 
   <!-- Photo info -->
@@ -44,122 +44,113 @@
     <div id="photo-text"></div>
   </div>
 
-  <!-- Bottone pulizia -->
-  <button id="clear-btn" title="Pulisci tutto">🧹</button>
+  <!-- Clean button -->
+  <button id="clear-btn" title="Clean all">🧹</button>
 
-  <!-- Bottone add todo -->
+  <!-- Add todo button -->
   <button id="main-add-todo-btn" title="To-do">+</button>
 
-  <!-- Bottone notifica todo 
-  <button id="todo-notification-btn" title="Mostra todo">📝</button>-->
+  <!-- Todo notification button 
+  <button id="todo-notification-btn" title="Show todo">📝</button>-->
 
-  <!-- Bottone impostazioni -->
-  <button id="settings-btn" title="Impostazioni">⚙️</button>
+  <!-- Settings button -->
+  <button id="settings-btn" title="Settings">⚙️</button>
 
-  <!-- Bottone test crossfade 
+  <!-- Test crossfade button 
   <button id="test-crossfade-btn" title="Test crossfade background">🎨</button>-->
 
-  <!-- Select linguaggio -->
-  <select id="quote-language" title="Lingua citazioni">
+  <!-- Language selector -->
+  <select id="quote-language" title="Quote language">
     <option value="it">IT</option>
     <option value="en">EN</option>
     <option value="fr">FR</option>
     <option value="de">DE</option>
   </select>
 
-  <!-- Pannello preview TODO sotto i bottoni, in overlay ma allineato -->
+  <!-- TODO preview panel below buttons, overlay but aligned -->
   <div id="todo-preview-panel" class="todo-preview-panel" style="display:none;"></div>
 
-  <!-- Popover impostazioni -->
+  <!-- Settings popover -->
   <div id="settings-popover" style="display: none;">
     <div class="popover-overlay"></div>
     <div class="popover-content">
       <div class="popover-header">
-        <h2>Impostazioni</h2>
+        <h2>Settings</h2>
         <button id="close-popover">✕</button>
       </div>
       <div class="popover-body">
-        <label>Il tuo nome</label>
+        <label>Your name</label>
         <input id="name-input" placeholder="Es. John" />
 
         <div class="cache-duration-label">
-          <label data-translate="cacheDurationLabel">Durata cache contenuti</label>
+          <label data-translate="cacheDurationLabel">Content cache duration</label>
         </div>
 
         <div class="cache-duration-options">
-          <label class="radio-option">
-            <input type="radio" name="cache-duration" value="0.033" />
-            <span data-translate="cache2minutes">2 minuti</span>
-          </label>
-          <label class="radio-option">
-            <input type="radio" name="cache-duration" value="1" />
-            <span data-translate="cache1hour">1 ora</span>
-          </label>
-          <label class="radio-option">
-            <input type="radio" name="cache-duration" value="6" />
-            <span data-translate="cache6hours">6 ore</span>
-          </label>
-          <label class="radio-option">
-            <input type="radio" name="cache-duration" value="12" />
-            <span data-translate="cache12hours">12 ore</span>
-          </label>
-          <label class="radio-option">
-            <input type="radio" name="cache-duration" value="24" checked />
-            <span data-translate="cache24hours">24 ore</span>
-          </label>
-          <label class="radio-option">
-            <input type="radio" name="cache-duration" value="48" />
-            <span data-translate="cache48hours">48 ore</span>
-          </label>
-          <label class="radio-option">
-            <input type="radio" name="cache-duration" value="72" />
-            <span data-translate="cache72hours">72 ore</span>
-          </label>
+                      <span data-translate="cache2minutes">2 minutes</span>
+          </option>
+          <option value="3600000">
+            <span data-translate="cache1hour">1 hour</span>
+          </option>
+          <option value="21600000">
+            <span data-translate="cache6hours">6 hours</span>
+          </option>
+          <option value="43200000">
+            <span data-translate="cache12hours">12 hours</span>
+          </option>
+          <option value="86400000">
+            <span data-translate="cache24hours">24 hours</span>
+          </option>
+          <option value="172800000">
+            <span data-translate="cache48hours">48 hours</span>
+          </option>
+          <option value="259200000">
+            <span data-translate="cache72hours">72 hours</span>
         </div>
 
 
 
 
-        <p><button id="save-settings">Salva</button></p>
+        <p><button id="save-settings">Save</button></p>
       </div>
     </div>
   </div>
 
-  <!-- Popover cambio città 1 -->
+  <!-- City change popover 1 -->
   <div id="city-popover-1" class="city-popover" style="display: none;">
     <div class="popover-overlay"></div>
     <div class="popover-content">
       <div class="popover-header">
-        <h2>Cambia Prima Città</h2>
+        <h2>Change First City</h2>
         <button class="close-city-popover">✕</button>
       </div>
       <div class="popover-body">
-        <label>Nome della città</label>
-        <input id="city-input-1" placeholder="Es. Roma" />
+        <label>City name</label>
+        <input id="city-input-1" placeholder="E.g. Rome" />
 
         <p>
-          <button id="save-city-1" class="save-city-btn">Salva</button>
-          <button class="close-city-popover cancel-btn">Annulla</button>
+          <button id="save-city-1" class="save-city-btn">Save</button>
+          <button class="close-city-popover cancel-btn">Cancel</button>
         </p>
       </div>
     </div>
   </div>
 
-  <!-- Popover cambio città 2 -->
+  <!-- City change popover 2 -->
   <div id="city-popover-2" class="city-popover" style="display: none;">
     <div class="popover-overlay"></div>
     <div class="popover-content">
       <div class="popover-header">
-        <h2>Cambia Seconda Città</h2>
+        <h2>Change Second City</h2>
         <button class="close-city-popover">✕</button>
       </div>
       <div class="popover-body">
-        <label>Nome della città</label>
-        <input id="city-input-2" placeholder="Es. Milano" />
+        <label>City name</label>
+        <input id="city-input-2" placeholder="E.g. Milan" />
 
         <p>
-          <button id="save-city-2" class="save-city-btn">Salva</button>
-          <button class="close-city-popover cancel-btn">Annulla</button>
+          <button id="save-city-2" class="save-city-btn">Save</button>
+          <button class="close-city-popover cancel-btn">Cancel</button>
         </p>
       </div>
     </div>
@@ -175,7 +166,7 @@
         <div class="todo-input-row">
           <input id="todo-input" placeholder="Aggiungi attività" />
           <button id="add-todo-btn" type="submit" title="Aggiungi alla lista">✔</button>
-          <button id="hide-todo-form" type="button" title="Nascondi To-do">−</button>
+          <button id="hide-todo-form" type="button" title="Hide To-do">−</button>
         </div>
 
         <div class="color-picker">
@@ -224,7 +215,7 @@
       <h1 id="welcome-title">Benvenuto!</h1>
       <p id="welcome-subtitle">Come ti chiami?</p>
       <div class="welcome-form">
-        <input id="welcome-name-input" placeholder="Inserisci il tuo nome" />
+        <input id="welcome-name-input" placeholder="Enter your name" />
         <button id="welcome-save-btn">Inizia</button>
       </div>
     </div>
@@ -251,11 +242,11 @@
   <!-- Weather status bar -->
   <div class="weather-status-bar">
     <div class="weather-location">
-      <button id="change-city-btn" title="Cambia città">📍</button>
+      <button id="change-city-btn" title="Change city">📍</button>
       <div id="weather"></div>
     </div>
     <div class="weather-location">
-      <button id="change-city-btn-2" title="Cambia seconda città">📍</button>
+      <button id="change-city-btn-2" title="Change second city">📍</button>
       <div id="weather-2"></div>
     </div>
   </div>

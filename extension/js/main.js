@@ -12,10 +12,10 @@ let isCleanView = false;
 async function initializeApp() {
   console.log('DOM loaded');
   
-  // FASE 1: Carica immediatamente l'interfaccia utente
+  // PHASE 1: Load the user interface immediately
   await initializeUI();
   
-  // FASE 2: Carica il background in modo asincrono senza bloccare
+  // PHASE 2: Load the background asynchronously without blocking
   initializeBackgroundAsync();
 }
 
@@ -333,7 +333,7 @@ function setupTodoEventListeners() {
         
         // Update button appearance
         this.textContent = '📝';
-        this.title = 'Mostra todo';
+        this.title = 'Show todo';
         this.classList.add('blinking');
       } else {
         // Show todo section and list
@@ -342,7 +342,7 @@ function setupTodoEventListeners() {
         
         // Update button appearance
         this.textContent = '✕';
-        this.title = 'Nascondi todo';
+        this.title = 'Hide todo';
         this.classList.remove('blinking');
       }
       
