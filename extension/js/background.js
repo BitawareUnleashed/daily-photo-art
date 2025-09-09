@@ -106,9 +106,16 @@ async function loadBackgroundFromCache() {
     const cacheData = JSON.parse(cached);
     const age = Date.now() - cacheData.timestamp;
     
-    // Get cache duration from settings
-    const cacheDurationHours = (typeof getCacheDuration === 'function') ? 
+    // Get cache duration from settings with safety check
+    let cacheDurationHours = (typeof getCacheDuration === 'function') ? 
       await getCacheDuration() : 24;
+    
+    // SAFETY: Prevent absurd cache durations (2 minutes = 0.033 hours minimum)
+    if (!cacheDurationHours || cacheDurationHours < 0.03 || cacheDurationHours > 168) {
+      console.warn('⚠️ CACHE: Invalid cache duration detected:', cacheDurationHours, '- using 24 hours default');
+      cacheDurationHours = 24;
+    }
+    
     const cacheDuration = cacheDurationHours * 60 * 60 * 1000;
     
     console.log(`📦 Cache age: ${Math.round(age / 1000)} seconds`);
@@ -302,22 +309,35 @@ async function applyBackgroundWithFade(bgElement, imgUrl) {
       
       // Small delay to ensure DOM is updated
       setTimeout(() => {
+        console.log('🎬 Starting crossfade animation...');
         // Start crossfade: new image fades in, old image fades out
         overlay.style.opacity = '1';
         bgElement.style.transition = 'opacity 3000ms ease-in-out';
         bgElement.style.opacity = '0';
+        console.log('🎬 Fade out started, waiting 3 seconds...');
         
         setTimeout(() => {
+          console.log('🎬 Crossfade timeout reached, applying new background...');
           // Update the main background element with new image
-          bgElement.style.transition = '';
           bgElement.style.setProperty('background-image', `url("${imgUrl}")`, 'important');
           bgElement.style.setProperty('background-size', 'cover', 'important');
           bgElement.style.setProperty('background-position', 'center', 'important');
           bgElement.style.setProperty('background-repeat', 'no-repeat', 'important');
           bgElement.style.opacity = '1';
+          console.log('🎬 Background updated, opacity set to 1');
           
           // Remove the temporary overlay
           overlay.remove();
+          console.log('🎬 Overlay removed');
+          
+          // IMPORTANT: Properly remove transition after fade is complete
+          bgElement.style.removeProperty('transition');
+          console.log('🎬 Transition property removed');
+          console.log('🎬 Final bgElement styles:', {
+            opacity: bgElement.style.opacity,
+            transition: bgElement.style.transition,
+            backgroundImage: bgElement.style.backgroundImage ? 'SET' : 'NOT SET'
+          });
           
           console.log('✅ Crossfade completed');
           resolve();
@@ -546,12 +566,33 @@ async function startCacheExpirationChecker() {
     const cacheData = JSON.parse(cached);
     const age = Date.now() - cacheData.timestamp;
     
-    // Get cache duration from settings
-    const cacheDurationHours = (typeof getCacheDuration === 'function') ? 
+    // Get cache duration from settings with safety check
+    let cacheDurationHours = (typeof getCacheDuration === 'function') ? 
       await getCacheDuration() : 24;
+    
+    // SAFETY: Prevent absurd cache durations that cause infinite loops (2 minutes = 0.033 hours minimum)
+    if (!cacheDurationHours || cacheDurationHours < 0.03 || cacheDurationHours > 168) {
+      console.warn('⚠️ TIMER: Invalid cache duration detected:', cacheDurationHours, '- using 24 hours default');
+      cacheDurationHours = 24;
+    }
+    
     const cacheDuration = cacheDurationHours * 60 * 60 * 1000;
     
     const timeUntilExpiration = cacheDuration - age;
+    
+    console.log('🔍 [TIMER DEBUG]:', {
+      cacheDurationHours,
+      cacheDurationMs: cacheDuration,
+      ageMs: age,
+      timeUntilExpirationMs: timeUntilExpiration,
+      timeUntilExpirationSeconds: Math.round(timeUntilExpiration / 1000)
+    });
+    
+    // SAFETY: Don't set timer for absurd durations
+    if (timeUntilExpiration > 7 * 24 * 60 * 60 * 1000) { // Max 7 days
+      console.warn('⚠️ Timer duration too long - not setting timer');
+      return;
+    }
     
     if (timeUntilExpiration <= 0) {
       console.log('⏰ Cache already expired - loading new image immediately');
@@ -567,7 +608,8 @@ async function startCacheExpirationChecker() {
       cacheExpirationTimer = null;
       await setBackground();
       
-      // After loading new image, set up next timer
+      // After loading new image, set up next timer (with safety checks)
+      console.log('� Timer expired - setting up next timer with safety checks');
       startCacheExpirationChecker();
     }, timeUntilExpiration);
     

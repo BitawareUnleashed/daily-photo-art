@@ -12,19 +12,18 @@ function saveQuoteToCache(quote) {
     quote: quote,
     timestamp: Date.now()
   };
-  localStorage.setItem('cachedQuote', JSON.stringify(cacheData));
+  save('cachedQuote', cacheData);
   console.log('💾 Quote saved to cache:', quote);
 }
 
 /**
  * Load quote from cache if still valid
  */
-function loadQuoteFromCache() {
+async function loadQuoteFromCache() {
   try {
-    const cached = localStorage.getItem('cachedQuote');
-    if (!cached) return null;
+    const cacheData = await load('cachedQuote');
+    if (!cacheData) return null;
     
-    const cacheData = JSON.parse(cached);
     const age = Date.now() - cacheData.timestamp;
     
     if (age < CACHE_DURATION) {
@@ -32,7 +31,7 @@ function loadQuoteFromCache() {
       return cacheData.quote;
     } else {
       console.log('⏰ Cached quote expired (age:', Math.round(age / 1000), 'seconds)');
-      localStorage.removeItem('cachedQuote');
+      remove('cachedQuote');
       return null;
     }
   } catch (error) {
@@ -70,7 +69,7 @@ async function loadQuote() {
   
   // Check cache first if we don't have a current quote
   if (!currentQuote) {
-    const cachedQuote = loadQuoteFromCache();
+    const cachedQuote = await loadQuoteFromCache();
     if (cachedQuote) {
       currentQuote = cachedQuote;
       console.log('📦 Using cached quote:', currentQuote);

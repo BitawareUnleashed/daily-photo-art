@@ -25,7 +25,7 @@ async function initializeApp() {
 async function initializeUI() {
   console.log('🚀 Initializing UI components...');
   
-  // Set up all event listeners first
+  // Set up event listeners first
   setupWelcomeEventListeners();
   setupCleanViewEventListeners();
   setupTestCrossfadeEventListeners();
@@ -227,7 +227,7 @@ function setupSettingsEventListeners() {
         
         // Get selected cache duration
         const selectedCacheDuration = document.querySelector('input[name="cache-duration"]:checked');
-        const cacheDuration = selectedCacheDuration ? parseFloat(selectedCacheDuration.value) : 24;
+        const cacheDuration = selectedCacheDuration ? selectedCacheDuration.value : '86400000'; // Save the raw value from HTML
 
         if (name) {
           await save('name', name);
@@ -249,7 +249,7 @@ function setupSettingsEventListeners() {
         
         // Save cache duration
         await save('cacheDuration', cacheDuration);
-        console.log(`Cache duration set to: ${cacheDuration} hours`);
+        console.log(`Cache duration set to: ${cacheDuration} ms`);
         
         // Restart cache expiration timer with new duration
         if (window.startCacheExpirationChecker) {
@@ -692,7 +692,44 @@ function handleEscapeKey() {
 async function getCacheDuration() {
   try {
     const cacheDuration = await load('cacheDuration');
-    return cacheDuration ? parseFloat(cacheDuration) : 24; // Default to 24 hours
+    const result = cacheDuration ? parseFloat(cacheDuration) : 24; // Default to 24 hours
+    console.log('🔍 [DEBUG] getCacheDuration:', {
+      rawValue: cacheDuration,
+      parsedValue: result,
+      type: typeof result
+    });
+    return result;
+  } catch (error) {
+    console.error('Error getting cache duration:', error);
+    return 24; // Default fallback
+  }
+}
+
+/**
+ * Get cache duration from settings
+ * @returns {Promise<number>} Cache duration in hours
+ */
+async function getCacheDuration() {
+  try {
+    const cacheDuration = await load('cacheDuration');
+    
+    // If we have a saved value, it's in milliseconds from the HTML radiobutton
+    if (cacheDuration) {
+      const cacheDurationMs = parseFloat(cacheDuration);
+      const cacheDurationHours = cacheDurationMs / (60 * 60 * 1000); // Convert to hours
+      
+      // SAFETY: Reset corrupted cache duration values (2 minutes = 0.033 hours minimum)
+      if (cacheDurationHours < 0.03 || cacheDurationHours > 168) {
+        console.warn('⚠️ Corrupted cache duration detected:', cacheDurationHours, 'hours - resetting to 24 hours');
+        await save('cacheDuration', '86400000'); // Reset to 24 hours in ms
+        return 24;
+      }
+      
+      return cacheDurationHours;
+    }
+    
+    // Default to 24 hours if no value saved
+    return 24;
   } catch (error) {
     console.error('Error getting cache duration:', error);
     return 24; // Default fallback
