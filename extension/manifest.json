@@ -1,10 +1,10 @@
 {
   "name": "Daily Photo Art",
   "description": "New Tab con sfondo giornaliero, orologio, citazione, to-do e meteo.",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "manifest_version": 3,
   "chrome_url_overrides": { "newtab": "newtab.html" },
-  "icons": { "128": "assets/default-bg.jpg" },
+  "icons": { "128": "assets/Icona128.png" },
   "action": { "default_title": "Daily Photo Art" },
   "permissions": ["storage", "alarms"],
   "host_permissions": [
