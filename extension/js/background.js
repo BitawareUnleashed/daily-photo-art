@@ -221,17 +221,28 @@ async function loadBackgroundFromCache() {
 async function downloadCodicepuntoPhoto() {
   // Choose a random ID (you can change range if necessary)
   const photoNum = Math.floor(Math.random() * 21) + 1;
-  const photoId = `DBE_${photoNum.toString().padStart(3, '0')}`;
+  const photoId = `DBE_${photoNum.toString().padStart(3, '0')}`.toUpperCase();
   const baseUrl = `https://raw.githubusercontent.com/bitawareunleashed/photo-storage/main/${photoId}`;
   const jpgUrl = `${baseUrl}.JPG`;
   const jsonUrl = `${baseUrl}.json`;
   
   try {
     // Download the photo
-    const imgResp = await fetch(jpgUrl);
-    if (!imgResp.ok) throw new Error('Immagine non trovata');
+    // Try to fetch with .JPG, if not found try .jpg
+    let imgResp = await fetch(jpgUrl);
+    if (!imgResp.ok) {
+      // Try lowercase extension
+      const altJpgUrl = `${baseUrl}.jpg`;
+      imgResp = await fetch(altJpgUrl);
+      if (!imgResp.ok) throw new Error('Image not found (.JPG or .jpg)');
+    }
     const imgBlob = await imgResp.blob();
     const imgUrl = URL.createObjectURL(imgBlob);
+
+    // EXIF
+    const exifData = await setBackgroundAndReadExif(imgUrl);
+    console.log("EXIF data:", exifData);
+
 
     // Download the JSON
     const jsonResp = await fetch(jsonUrl);
@@ -459,6 +470,10 @@ async function setBackground() {
       photoData = result.photoData;
       photoId = result.photoId;
       source = 'codicepunto';
+
+
+
+
     } else {
       // Fallback to Picsum if codicepunto fails
       photoId = Math.floor(Math.random() * 1000) + 1;
