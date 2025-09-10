@@ -20,4 +20,6 @@ const load = (key) => {
 // Export for ES6 modules or make global
 if (typeof window !== 'undefined') {
   window.StorageUtils = { save, load };
+  window.save = save;
+  window.load = load;
 }

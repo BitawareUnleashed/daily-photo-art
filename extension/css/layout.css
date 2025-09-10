@@ -42,6 +42,34 @@
   font-size: 96px;
   font-weight: 700;
   line-height: 1;
+  display: inline-flex;
+  align-items: baseline;
+}
+
+.clock-hours,
+.clock-minutes {
+  display: inline-block;
+  min-width: 2ch; /* Ensure consistent width for 2 digits */
+  text-align: center;
+}
+
+.clock-colon {
+  display: inline-block;
+  width: 0.5ch; /* Fixed width for colon */
+  text-align: center;
+  animation: blinkColon 2s ease-in-out infinite;
+}
+
+/* .clock-colon.fade-out {
+  opacity: 0;
+} */
+
+@keyframes blinkColon {
+  0% { opacity: 1; }
+  
+  50% { opacity: 0.1; }
+  
+  100% { opacity: 1; }
 }
 
 #greeting {

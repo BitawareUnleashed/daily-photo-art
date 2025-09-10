@@ -434,6 +434,13 @@ if (typeof window !== 'undefined') {
   // Make functions globally available for backward compatibility
   window.toggleTodo = toggleTodo;
   window.deleteTodo = deleteTodo;
+  
+  // Event listener for app initialization
+  window.addEventListener('app:initialized', function() {
+    console.log('📋 Todo module received app initialization event');
+    renderTodos();
+    updateTodoNotificationVisibility();
+  });
 }
 
 // Initialize TODO form when DOM is loaded

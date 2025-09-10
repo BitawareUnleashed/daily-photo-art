@@ -229,7 +229,11 @@
   <main class="container">
     <section class="top">
       <div id="greeting"></div>
-      <div id="clock"></div>
+      <div id="clock">
+        <div class="clock-hours"></div>
+        <div class="clock-colon">:</div>
+        <div class="clock-minutes"></div>
+      </div>
       <input id="focus" placeholder="Qual è il tuo focus di oggi?" maxlength="14" />
       <div id="focus-display"></div>
     </section>
@@ -248,17 +252,20 @@
   <div class="weather-status-bar">
     <div class="weather-location">
       <button id="change-city-btn" title="Change city">📍</button>
-      <div id="weather"></div>
+      <div id="weather-1"></div>
+      <span id="weather-update-indicator-1" class="weather-update-indicator"></span>
     </div>
     <div class="weather-location">
       <button id="change-city-btn-2" title="Change second city">📍</button>
       <div id="weather-2"></div>
+      <span id="weather-update-indicator-2" class="weather-update-indicator"></span>
     </div>
   </div>
 
   <!-- Load modular JavaScript files -->
   <script src="js/storage.js"></script>
   <script src="js/clock.js"></script>
+  <script src="js/greeting.js"></script>
   <script src="js/focus.js"></script>
   <script src="js/translations.js"></script>
   <script src="js/quotes.js"></script>

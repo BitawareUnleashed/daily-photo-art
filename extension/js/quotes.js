@@ -242,4 +242,10 @@ if (typeof window !== 'undefined') {
     updateOriginalQuoteTooltip,
     getCacheRemainingTime
   };
+  
+  // Event listener for app initialization
+  window.addEventListener('app:initialized', function() {
+    console.log('📝 Quotes module received app initialization event');
+    if (loadQuote) loadQuote();
+  });
 }

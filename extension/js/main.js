@@ -41,8 +41,8 @@ async function initializeUI() {
   
   // Start greeting immediately
   setTimeout(() => {
-    if (window.ClockUtils && window.ClockUtils.greeting) {
-      window.ClockUtils.greeting();
+    if (window.GreetingUtils && window.GreetingUtils.initializeGreeting) {
+      window.GreetingUtils.initializeGreeting();
     }
   }, 50); // Shorter delay since UI is ready
   
@@ -223,7 +223,6 @@ function setupSettingsEventListeners() {
     if (saveSettings) {
       saveSettings.addEventListener('click', async function() {
         const name = nameInput ? nameInput.value.trim() : '';
-        const city = cityInput ? cityInput.value.trim() : '';
         
         // Get selected cache duration
         const selectedCacheDuration = document.querySelector('input[name="cache-duration"]:checked');
@@ -241,10 +240,6 @@ function setupSettingsEventListeners() {
           }
           // Display default greeting
           displayGreeting("Amico");
-        }
-
-        if (city) {
-          loadWeatherForCity(city);
         }
         
         // Save cache duration
@@ -436,7 +431,7 @@ function setupWeatherEventListeners() {
     saveCity1Btn.addEventListener('click', async function() {
       const city = document.getElementById('city-input-1').value.trim();
       if (city) {
-        loadWeatherForCity(city);
+        await window.loadWeatherForCity(city, 1, true);
         cityPopover1.style.display = 'none';
         document.getElementById('city-input-1').value = '';
       }
@@ -447,7 +442,7 @@ function setupWeatherEventListeners() {
     saveCity2Btn.addEventListener('click', async function() {
       const city = document.getElementById('city-input-2').value.trim();
       if (city) {
-        loadWeatherForCity2(city);
+        await window.loadWeatherForCity(city, 2, true);
         cityPopover2.style.display = 'none';
         document.getElementById('city-input-2').value = '';
       }
@@ -528,9 +523,11 @@ function setupQuoteEventListeners() {
         });
         
         // Reload weather with new translations
-        if (window.loadWeather) window.loadWeather();
-        if (window.loadWeather2) window.loadWeather2();
-        
+        if (window.loadWeatherFromConfig) {
+          window.loadWeatherFromConfig(1, false);
+          window.loadWeatherFromConfig(2, false);
+        }
+
         // Update photo info with new language
         if (window.updatePhotoInfo) window.updatePhotoInfo();
         
@@ -746,6 +743,13 @@ function updateCleanButton(isClean) {
 
 // Initialize the application when DOM is loaded
 document.addEventListener('DOMContentLoaded', initializeApp);
+
+// Clean up when page is unloaded
+window.addEventListener('beforeunload', function() {
+  if (window.stopWeatherAutoUpdate) {
+    window.stopWeatherAutoUpdate();
+  }
+});
 
 // Export functions for use by other modules
 if (typeof window !== 'undefined') {
