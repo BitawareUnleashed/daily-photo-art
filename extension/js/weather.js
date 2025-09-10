@@ -318,10 +318,10 @@ function showWeatherUpdateIndicator(weatherIndex) {
   if (indicator) {
     indicator.classList.add('visible');
 
-    // Hide after 10 seconds
+    // Hide after 90 seconds
     setTimeout(() => {
       indicator.classList.remove('visible');
-    }, 10000);
+    }, 90000);
   }
 }
 
