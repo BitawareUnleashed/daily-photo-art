@@ -17,6 +17,19 @@
   <link rel="stylesheet" href="css/animations.css" />
 
   <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+
+
+    <style>
+    body {
+      margin: 20px;
+      font-family: sans-serif;
+    }
+
+    my-card {
+      display: block;
+      margin-bottom: 20px;
+    }
+  </style>
 </head>
 
 <body>
@@ -38,6 +51,12 @@
   ">
     🖼️ Loading image...
   </div>
+
+
+  <my-card title="Ciao" content="Questo è un test"></my-card>
+  <my-card title="Secondo" content="Ancora un esempio"></my-card>
+  <my-card title="Ciao"></my-card> <!-- appare nel DOM -->
+
 
   <!-- Photo info -->
   <div id="photo-info" style="display: none;">
@@ -274,6 +293,7 @@
   <script src="js/exif.js"></script>
   <script src="js/background.js"></script>
   <script src="js/main.js"></script>
+   <script src="js/newtab.js"></script>
 </body>
 
 </html>
